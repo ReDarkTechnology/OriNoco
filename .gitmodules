@@ -1,0 +1,3 @@
+[submodule "Raylib-CSharp"]
+	path = Raylib-CSharp
+	url = https://github.com/ReDarkTechnology/Raylib-CSharp

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OriNoco", "OriNoco\OriNoco.csproj", "{F56C24DB-8287-4754-A709-2E23A6ED0BF7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raylib-CSharp", "Raylib-CSharp\src\Raylib-CSharp\Raylib-CSharp.csproj", "{56ECEB50-FFCE-4DFB-B214-467688D221DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F56C24DB-8287-4754-A709-2E23A6ED0BF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F56C24DB-8287-4754-A709-2E23A6ED0BF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F56C24DB-8287-4754-A709-2E23A6ED0BF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F56C24DB-8287-4754-A709-2E23A6ED0BF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56ECEB50-FFCE-4DFB-B214-467688D221DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56ECEB50-FFCE-4DFB-B214-467688D221DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56ECEB50-FFCE-4DFB-B214-467688D221DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56ECEB50-FFCE-4DFB-B214-467688D221DD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DC058E7E-A01E-4C5F-A7A8-533989F47F4F}
+	EndGlobalSection
+EndGlobal
