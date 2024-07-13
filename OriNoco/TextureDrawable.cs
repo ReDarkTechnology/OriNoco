@@ -6,42 +6,66 @@ using System.Numerics;
 
 namespace OriNoco
 {
-    public class TextureDrawable
+    public class TextureDrawable : Drawable
     {
-        public Texture2D texture;
+        private Texture2D _Texture;
+        public Texture2D Texture
+        {
+            get => _Texture;
+            set
+            {
+                _Texture = value;
+                SourceRectangle = new(0, 0, value.Width, value.Height);
+            }
+        }
 
-        public float pixelsPerUnit = 100f;
-        public Rectangle sourceRect = new(0, 0, 1, 1);
-        public Vector2 position = new(0, 0);
-        public float rotation = 0;
-        public Vector2 scale = new(1, 1);
-        public Color color = Color.White;
+        private float _PixelsPerUnit = 100f;
+        public float PixelsPerUnit
+        {
+            get => _PixelsPerUnit;
+            set
+            {
+                _PixelsPerUnit = value;
+                UpdateScale();
+            }
+        }
+
+        public Color Color = Color.White;
+
+        private Rectangle _SourceRectangle = new(0, 0, 1, 1);
+        private Rectangle SourceRectangle
+        {
+            get => _SourceRectangle;
+            set
+            {
+                _SourceRectangle = value;
+                UpdateScale();
+            }
+        }
 
         private Vector2 _scale = new(1, 1);
-        private Vector2 _position = new(0, 0);
 
         public TextureDrawable(Texture2D texture)
         {
-            this.texture = texture;
-
-            _scale.X = texture.Width * scale.X / pixelsPerUnit;
-            _scale.Y = texture.Height * scale.Y / pixelsPerUnit;
-
-            sourceRect = new(0, 0, texture.Width, texture.Height);
+            Texture = texture;
+            SourceRectangle = new(0, 0, texture.Width, texture.Height);
+            UpdateScale();
         }
 
-        public void Draw()
+        public override void Draw()
         {
-            _scale.X = texture.Width * scale.X / pixelsPerUnit;
-            _scale.Y = texture.Height * scale.Y / pixelsPerUnit;
+            Graphics.DrawTexturePro(Texture, 
+                SourceRectangle, 
+                new Rectangle(Rectangle.ConstructMode.TopLeftScale, ViewportPosition, _scale),
+                _scale / 2, -Rotation, Color);
+        }
+        public override void Draw(Viewport2D viewport) => Draw();
 
-            _position.X = position.X;
-            _position.Y = -position.Y;
-
-            Graphics.DrawTexturePro(texture, 
-                sourceRect, 
-                new Rectangle(Rectangle.ConstructMode.TopLeftScale, _position, _scale),
-                _scale / 2, rotation, color);
+        public override void OnScaleChanged() => UpdateScale();
+        private void UpdateScale()
+        {
+            _scale.X = SourceRectangle.Width * Scale.X / _PixelsPerUnit;
+            _scale.Y = SourceRectangle.Height * Scale.Y / _PixelsPerUnit;
         }
     }
 }

@@ -1,38 +1,27 @@
 ﻿using Raylib_CSharp.Colors;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Transformations;
-using System.Numerics;
 
 namespace OriNoco
 {
-    public class ShapeDrawable
+    public class ShapeDrawable : Drawable
     {
-        public ShapeType shape = ShapeType.Rectangle;
+        public ShapeType Shape = ShapeType.Rectangle;
 
-        public Color color = Color.White;
-        public Vector2 position = new(0, 0);
-        public float rotation = 0;
-        public Vector2 scale = new(1, 1);
+        public Color Color = Color.White;
 
-        private Vector2 _position = new(0, 0);
+        public ShapeDrawable() {}
+        public ShapeDrawable(ShapeType shape) { Shape = shape; }
 
-        public ShapeDrawable() 
+        public override void Draw()
         {
-
-        }
-
-        public virtual void Draw()
-        {
-            _position.X = position.X;
-            _position.Y = -position.Y;
-
-            switch (shape)
+            switch (Shape)
             {
                 case ShapeType.Rectangle:
-                    Graphics.DrawRectanglePro(new Rectangle(Rectangle.ConstructMode.TopLeftScale, _position, scale), scale / 2, rotation, Color.White);
+                    Graphics.DrawRectanglePro(new Rectangle(Rectangle.ConstructMode.TopLeftScale, ViewportPosition, Scale), Scale / 2, -Rotation, Color.White);
                     break;
                 case ShapeType.Circle:
-                    Graphics.DrawCircleV(_position, scale.X / 2, Color.White);
+                    Graphics.DrawCircleV(ViewportPosition, Scale.X / 2, Color.White);
                     break;
                 default:
                     break;
