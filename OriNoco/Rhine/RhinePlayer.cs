@@ -1,9 +1,9 @@
-﻿using Raylib_CSharp;
+﻿using System.Numerics;
+using System.Collections.Generic;
+
+using Raylib_CSharp;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Interact;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 
 namespace OriNoco.Rhine
 {

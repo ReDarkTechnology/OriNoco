@@ -1,5 +1,6 @@
-﻿using Raylib_CSharp;
-using System.Numerics;
+﻿using System.Numerics;
+
+using Raylib_CSharp;
 
 namespace OriNoco.Rhine
 {
