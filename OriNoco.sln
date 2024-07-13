@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OriNoco", "OriNoco\OriNoco.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Raylib-CSharp", "Raylib-CSharp\src\Raylib-CSharp\Raylib-CSharp.csproj", "{56ECEB50-FFCE-4DFB-B214-467688D221DD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rlImGui", "rlImGui\rlImGui.csproj", "{15F01082-2A09-4733-80C8-BB7536812B29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{56ECEB50-FFCE-4DFB-B214-467688D221DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56ECEB50-FFCE-4DFB-B214-467688D221DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56ECEB50-FFCE-4DFB-B214-467688D221DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15F01082-2A09-4733-80C8-BB7536812B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15F01082-2A09-4733-80C8-BB7536812B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15F01082-2A09-4733-80C8-BB7536812B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15F01082-2A09-4733-80C8-BB7536812B29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
