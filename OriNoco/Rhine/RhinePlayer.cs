@@ -13,8 +13,10 @@ namespace OriNoco.Rhine
         public TextureDrawable drawable;
         public bool freeplay = false;
         public bool createNotes = false;
+        public bool showTail = true;
         public float speed = 5f;
 
+        public CreateMode mode = CreateMode.Main;
         private Direction _direction = Direction.Up;
         public Direction direction = Direction.Up;
 
@@ -22,6 +24,8 @@ namespace OriNoco.Rhine
 
         private List<RhineTrail> trails = new List<RhineTrail>();
         private List<RhineTrail> deleteTrailQueue = new List<RhineTrail>();
+
+        public List<RhineNote> notes => Program.RhineScene.notes;
         #endregion
 
         #region Main Methods
@@ -61,8 +65,8 @@ namespace OriNoco.Rhine
 
         public void Draw()
         {
-            foreach (var trail in trails)
-                trail.Draw();
+            if (showTail)
+                foreach (var trail in trails) trail.Draw();
 
             drawable.Draw();
         }
@@ -80,43 +84,88 @@ namespace OriNoco.Rhine
         {
             if (IsStarted)
             {
-                if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
+                if (mode == CreateMode.MainAndDiagonals)
                 {
-                    if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                    if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
                     {
-                        direction = Direction.LeftUp;
+                        if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                        {
+                            direction = Direction.LeftUp;
+                        }
+                        else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                        {
+                            direction = Direction.LeftDown;
+                        }
+                        else
+                        {
+                            direction = Direction.Left;
+                        }
+                    }
+                    else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
+                    {
+                        if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                        {
+                            direction = Direction.RightUp;
+                        }
+                        else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                        {
+                            direction = Direction.RightDown;
+                        }
+                        else
+                        {
+                            direction = Direction.Right;
+                        }
                     }
                     else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
                     {
-                        direction = Direction.LeftDown;
+                        direction = Direction.Down;
                     }
-                    else
+                    else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                    {
+                        direction = Direction.Up;
+                    }
+                }
+                else if (mode == CreateMode.Main)
+                {
+                    if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
                     {
                         direction = Direction.Left;
                     }
-                }
-                else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
-                {
-                    if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                    {
-                        direction = Direction.RightUp;
-                    }
-                    else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
-                    {
-                        direction = Direction.RightDown;
-                    }
-                    else
+                    else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
                     {
                         direction = Direction.Right;
                     }
+                    else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                    {
+                        direction = Direction.Down;
+                    }
+                    else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                    {
+                        direction = Direction.Up;
+                    }
                 }
-                else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                else if (mode == CreateMode.Diagonals)
                 {
-                    direction = Direction.Down;
-                }
-                else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                {
-                    direction = Direction.Up;
+                    if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
+                        && (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
+                    {
+                        direction = Direction.LeftUp;
+                    }
+                    else if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
+                        && (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
+                    {
+                        direction = Direction.LeftDown;
+                    }
+                    else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
+                        && (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
+                    {
+                        direction = Direction.RightUp;
+                    }
+                    else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
+                        && (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
+                    {
+                        direction = Direction.RightDown;
+                    }
                 }
             }
             else
@@ -124,6 +173,7 @@ namespace OriNoco.Rhine
                 if (Input.IsKeyPressed(Settings.Data.GameplayUpKey) || Input.IsKeyPressed(Settings.Data.GameplayAltUpKey))
                 {
                     CreateTail();
+                    Program.RhineScene.music.PlayStream();
                     IsStarted = true;
                 }
             }
@@ -132,6 +182,18 @@ namespace OriNoco.Rhine
             {
                 _direction = direction;
                 CreateTail();
+
+                if (createNotes)
+                {
+                    var note = new RhineNote
+                    {
+                        type = NoteType.Tap,
+                        direction = direction,
+                        time = Program.RhineScene.time
+                    };
+                    note.AdjustDrawables(drawable.Position, 0.2f);
+                    notes.Add(note);
+                }
             }
         }
         #endregion
@@ -142,5 +204,12 @@ namespace OriNoco.Rhine
 
         }
         #endregion
+
+        public enum CreateMode
+        {
+            Main,
+            Diagonals,
+            MainAndDiagonals
+        }
     }
 }

@@ -1,13 +1,20 @@
 ﻿using ImGuiNET;
 using rlImGui_cs;
-
+using System;
 using System.Numerics;
 
 namespace OriNoco
 {
     public static class GUI
     {
-        public static void Begin() => rlImGui.Begin();
+        /// <summary>
+        /// Perpare to draw GUI elemsnts, this also sets IsOverAnyElement to false so cache it before this call to use it
+        /// </summary>
+        public static void Begin()
+        {
+            IsOverAnyElement = false;
+            rlImGui.Begin();
+        }
         public static void End() => rlImGui.End();
 
         public static bool Toggle(string label, bool value) => Checkbox(label, value);
@@ -19,7 +26,12 @@ namespace OriNoco
 
         public static bool BeginWindow(string name) => ImGui.Begin(name);
         public static bool BeginWindow(string name, ImGuiWindowFlags flags) => ImGui.Begin(name, flags);
-        public static void EndWindow() => ImGui.End();
+        public static void EndWindow()
+        {
+            if (!IsOverAnyElement)
+                IsOverAnyElement = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) || ImGui.IsMouseHoveringRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), true);
+            ImGui.End();
+        }
 
         public static void Text(string text) => ImGui.Text(text);
         public static void TextColored(Vector4 color, string text) => ImGui.TextColored(color, text);
@@ -34,10 +46,67 @@ namespace OriNoco
             return result;
         }
 
+        public static void BeginChild(string name) => ImGui.BeginChild(name);
+        public static void BeginChild(string name, Vector2 size) => ImGui.BeginChild(name, size);
+        public static void EndChild()
+        {
+            if (!IsOverAnyElement)
+                IsOverAnyElement = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) || ImGui.IsMouseHoveringRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), true);
+            ImGui.EndChild();
+        }
+
+        public static void SetNextWindowPos(Vector2 pos) => ImGui.SetNextWindowPos(pos);
+        public static void SetNextWindowSize(Vector2 size) => ImGui.SetNextWindowSize(size);
+        public static void SetNextWindowBgAlpha(float alpha) => ImGui.SetNextWindowBgAlpha(alpha);
+
+        public static void BeginGroup() => ImGui.BeginGroup();
+        public static void EndGroup()
+        {
+            ImGui.EndGroup();
+        }
+
+        public static void PushID(string id) => ImGui.PushID(id);
+        public static void PopID() => ImGui.PopID();
+
+        public static void TextUnformatted(string text) => ImGui.TextUnformatted(text);
+        public static Enum ComboBox(string label, Enum value)
+        {
+            ImGui.BeginCombo(label, value.ToString("G"));
+            foreach (var enums in Enum.GetValues(value.GetType()))
+            {
+                bool s = ImGui.Selectable(((Enum)enums).ToString("G"), enums == value);
+                if (s)
+                    value = (Enum)enums;
+            }
+            ImGui.EndCombo();
+            return value;
+        }
+
+        public static float Slider(string label, float value, float min, float max)
+        {
+            ImGui.SliderFloat(label, ref value, min, max);
+            return value;
+        }
+
+        public static T ComboBox<T>(string label, T value) where T : Enum
+        {
+            if (ImGui.BeginCombo(label, value.ToString("G")))
+            {
+                foreach (var enums in Enum.GetValues(value.GetType()))
+                {
+                    bool s = ImGui.Selectable(((Enum)enums).ToString("G"), enums.Equals(value));
+                    if (s)
+                        value = (T)enums;
+                }
+                ImGui.EndCombo();
+            }
+            return value;
+        }
+
         /// <summary>
         /// Imports a font from a TTF file
         /// </summary>
-        public static GUIFont ImportFont(string fileName, int size = 20) => new GUIFont(ImGui.GetIO().Fonts.AddFontFromFileTTF(fileName, size));
+        public static GUIFont ImportFont(string fileName, int size = 20) => new(ImGui.GetIO().Fonts.AddFontFromFileTTF(fileName, size));
         /// <summary>
         /// Applies the font
         /// </summary>
@@ -45,7 +114,9 @@ namespace OriNoco
         /// <summary>
         /// Gets the current font
         /// </summary>
-        public static GUIFont GetFont() => new GUIFont(ImGui.GetFont());
+        public static GUIFont GetFont() => new(ImGui.GetFont());
+
+        public static bool IsOverAnyElement { get; private set; }
     }
 
     /// <summary>
