@@ -60,6 +60,13 @@ namespace OriNoco
                 _scale / 2, -Rotation, Color);
         }
         public override void Draw(Viewport2D viewport) => Draw();
+        public void Draw(Vector2 position, Color color)
+        {
+            Graphics.DrawTexturePro(Texture,
+                SourceRectangle,
+                new Rectangle(Rectangle.ConstructMode.TopLeftScale, position.InvertY(), _scale),
+                _scale / 2, -Rotation, color);
+        }
 
         public override void OnScaleChanged() => UpdateScale();
         private void UpdateScale()

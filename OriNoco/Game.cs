@@ -29,7 +29,7 @@ namespace OriNoco
         public static void Start()
         {
             Raylib.SetConfigFlags(ConfigFlags.Msaa4XHint | ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
-            Window.Init(_WindowSize.X, _WindowSize.Y, "Orinoco");
+            Window.Init(_WindowSize.X, _WindowSize.Y, "OriNoco");
             {
                 Window.SetMinSize(640, 360);
                 Window.SetIcon(Image.LoadFromMemory(".png", BuiltResources.OriNoco));
@@ -45,12 +45,16 @@ namespace OriNoco
 
                         while (!Window.ShouldClose())
                         {
-                            foreach (var scene in Scenes)
-                                scene.Update();
+                            foreach (var scene in Scenes) scene.Update();
 
                             Graphics.BeginDrawing();
-                            foreach (var scene in Scenes)
-                                scene.Draw();
+                            foreach (var scene in Scenes) scene.Draw();
+
+                            GUI.Begin();
+                            foreach (var scene in Scenes) scene.DrawGUI();
+                            GUI.End();
+
+                            foreach (var scene in Scenes) scene.PostRender();
                             Graphics.EndDrawing();
                         }
 

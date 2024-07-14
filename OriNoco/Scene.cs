@@ -18,7 +18,17 @@ namespace OriNoco
         /// <summary>
         /// Called every frame after Update()
         /// </summary>
-        public virtual void Draw() {}
+        public virtual void Draw() { }
+
+        /// <summary>
+        /// Called every frame after Draw()
+        /// </summary>
+        public virtual void DrawGUI() { }
+
+        /// <summary>
+        /// Called every frame after DrawGUI()
+        /// </summary>
+        public virtual void PostRender() { }
 
         /// <summary>
         /// Called at the end of the program

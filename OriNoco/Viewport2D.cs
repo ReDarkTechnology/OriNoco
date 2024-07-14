@@ -62,5 +62,10 @@ namespace OriNoco
 
         public void Begin() => Graphics.BeginMode2D(camera2D);
         public void End() => Graphics.EndMode2D();
+
+        public Vector2 GetWorldToScreen(Vector2 position)
+        {
+            return camera2D.GetWorldToScreen(position.InvertY());
+        }
     }
 }

@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using OriNoco.Serializer;
 using Raylib_CSharp;
 using Raylib_CSharp.Audio;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Rendering;
+using Raylib_CSharp.Windowing;
 
 namespace OriNoco.Rhine
 {
@@ -15,12 +16,18 @@ namespace OriNoco.Rhine
         private Color backgroundColor = Color.Black;
         private RhinePlayer player;
         private Viewport2D viewport;
+        private TextureDrawable noteDrawable;
+
+        public PredictableLane lane = new PredictableLane();
+
         public Music music;
 
         public float followSpeed = 1.5f;
         public float time = 0f;
+        public float bpm = 120f;
 
         public List<RhineNote> notes = new List<RhineNote>();
+        private bool wasHovering;
 
         public RhineScene()
         {
@@ -31,16 +38,20 @@ namespace OriNoco.Rhine
                 createNotes = true,
                 showTail = false,
             };
+            noteDrawable = new TextureDrawable(default);
         }
 
         public override void Init()
         {
             player.LoadTexture();
+            noteDrawable.Texture = TextureDictionary.note;
+            noteDrawable.Scale = new Vector2(0.2f);
             music = Music.Load("Sounds/NULL APOPHENIA.ogg");
         }
 
         public override void Update()
         {
+            wasHovering = GUI.IsOverAnyElement;
             if (player.IsStarted)
             {
                 time += Time.GetFrameTime();
@@ -54,7 +65,7 @@ namespace OriNoco.Rhine
 
         public override void Draw()
         {
-            bool wasHovering = GUI.IsOverAnyElement;
+            Graphics.BeginScissorMode(0, 0, Window.GetScreenWidth() - 300, Window.GetScreenHeight());
             Graphics.ClearBackground(backgroundColor);
 
             Graphics.DrawText("OriNoco", 10, 10, 20, Color.White);
@@ -62,15 +73,31 @@ namespace OriNoco.Rhine
             Graphics.DrawText($"Notes: {notes.Count}", 10, 50, 20, Color.White);
             Graphics.DrawText($"Music: N² - NULL APOPHENIA", 10, 70, 20, Color.White);
 
+            float distance = 1f;
+
             viewport.Begin();
+
+            for (int i = 0; i < 12; i++)
+            {
+                noteDrawable.Draw(player.drawable.Position + (distance * player.direction.ToDirection() * i), new ColorF(1f, 1f, 1f, (150 - (i * 8)) / 255f));
+            }
+
             foreach (var note in notes)
                 note.Draw();
 
             player.Draw();
             viewport.End();
+            Graphics.EndScissorMode();
+        }
 
-            GUI.Begin();
+        public void DrawPoint(Vector2 point, float thickness, Color color)
+        {
+            Graphics.DrawLineEx(new Vector2(0, point.Y), new Vector2(Window.GetScreenWidth(), point.Y), thickness, color);
+            Graphics.DrawLineEx(new Vector2(point.X, 0), new Vector2(point.X, Window.GetScreenHeight()), thickness, color);
+        }
 
+        public override void DrawGUI()
+        {
             GUI.BeginWindow("Rhine Settings");
             {
                 GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Player");
@@ -94,22 +121,27 @@ namespace OriNoco.Rhine
                 GUI.Separator();
 
                 GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
-                if(GUI.Button("Save"))
+                if (GUI.Button("Save"))
                 {
                     var serializables = new List<NoteSerializable>();
-                    foreach(var note in notes)
+                    foreach (var note in notes)
                         serializables.Add(new NoteSerializable(note));
-                    File.WriteAllText("notes.json", JsonSerializer.Serialize(serializables));
+                    File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
                 }
             }
             GUI.EndWindow();
-
-            GUI.End();
         }
 
         public override void Shutdown()
         {
             notes.Clear();
+        }
+
+        public override Vector2 GetViewportSize()
+        {
+            var size = base.GetViewportSize();
+            size.X = size.X - 300;
+            return size;
         }
 
         [System.Serializable]
