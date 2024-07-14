@@ -4,7 +4,7 @@
 - .NET Runtime 8.0
 ## Build Requirements
 - .NET SDK 8.0
-  - Windows: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.303-windows-x64-installer
+  - Windows: [Download here!](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
   - Linux: `sudo apt install dotnet-sdk-8.0 -y`
 ## How to Build (currently the only way to use it!)
 - Make sure submodules are up to date by running `git submodule init` and `git submodule update`
