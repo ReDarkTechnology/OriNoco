@@ -70,6 +70,7 @@
 
   <ItemGroup>
     <Folder Include="Images\" />
+    <Folder Include="Fonts\" />
   </ItemGroup>
 
   <ItemGroup>

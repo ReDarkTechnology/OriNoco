@@ -72,6 +72,7 @@ namespace OriNoco.Rhine
             Graphics.DrawText($"FPS: {Time.GetFPS()}", 10, 30, 20, Color.White);
             Graphics.DrawText($"Notes: {notes.Count}", 10, 50, 20, Color.White);
             Graphics.DrawText($"Music: N² - NULL APOPHENIA", 10, 70, 20, Color.White);
+            Graphics.DrawText($"Time: {time}", 10, 90, 20, Color.White);
 
             float distance = 1f;
 

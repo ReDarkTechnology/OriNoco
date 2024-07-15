@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using Raylib_CSharp.Colors;
+using Raylib_CSharp.Interact;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
 
@@ -26,10 +27,10 @@ namespace OriNoco.Charter
 
         public float xSpacing = 32f;
         public float yScale = 75f;
+        public float yOffset = 0;
+        private float mouseWheel;
 
-        public CharterScene() 
-        {
-        }
+        public CharterScene() {}
 
         public override void Init()
         {
@@ -54,9 +55,37 @@ namespace OriNoco.Charter
             rightActive.PixelsPerUnit = 1f;
         }
 
-        public override void Update()
+        public override void Update() 
         {
+            UpdateScroll();
+            ReadInputs();
+        }
 
+        public void ReadInputs()
+        {
+            if (Input.IsKeyPressed(KeyboardKey.Left))
+            {
+
+            }
+            else if (Input.IsKeyPressed(KeyboardKey.Right))
+            {
+
+            }
+        }
+
+        public void UpdateScroll()
+        {
+            mouseWheel = Input.GetMouseWheelMove();
+            if (mouseWheel > 0)
+            {
+                Program.RhineScene.time = lane.GetNextTime(Program.RhineScene.time);
+            }
+            else if (mouseWheel < 0)
+            {
+                Program.RhineScene.time = lane.GetPreviousTime(Program.RhineScene.time);
+            }
+
+            yOffset = Program.RhineScene.time * yScale;
         }
 
         public override void Draw()
@@ -79,8 +108,7 @@ namespace OriNoco.Charter
             float time = lane.GetNextTime(Program.RhineScene.time);
             for (int i = 0; i < 12; i++)
             {
-                float value = lane.GetValueFromTime(time);
-                Graphics.DrawLineEx(new Vector2(screenCoord.X, GetScreenY(value * yScale)), new Vector2(screenCoord3.X, GetScreenY(value * yScale)), 1f, Color.Green);
+                Graphics.DrawLineEx(new Vector2(screenCoord.X, GetScreenY(time * yScale)), new Vector2(screenCoord3.X, GetScreenY(time * yScale)), 1f, Color.Green);
                 time = lane.GetNextTime(time);
             }
 
@@ -103,7 +131,7 @@ namespace OriNoco.Charter
 
         public float GetScreenY(float y)
         {
-            return Window.GetScreenHeight() - YPadding - y;
+            return Window.GetScreenHeight() - YPadding - y + yOffset;
         }
     }
 }
