@@ -7,7 +7,14 @@ namespace OriNoco
 {
     public static class Settings
     {
-        public static string SettingsPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\OriNoco\\Settings.json";
+        public static string SettingsDirPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "OriNoco"
+        );
+        public static string SettingsPath = Path.Combine(
+            SettingsDirPath,
+            "Settings.json"
+        );
         public static SettingsData Data = new SettingsData();
 
         public static void Load()
@@ -32,14 +39,13 @@ namespace OriNoco
 
         public static void Save()
         {
-            var content = JsonSerializer.Serialize(Data, new JsonSerializerOptions() { 
+            var content = JsonSerializer.Serialize(Data, new JsonSerializerOptions() {
                 WriteIndented = true
             });
             if (content != null)
             {
-                var localDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\OriNoco";
-                if (!Directory.Exists(localDirectory))
-                    Directory.CreateDirectory(localDirectory);
+                if (!Directory.Exists(SettingsDirPath))
+                    Directory.CreateDirectory(SettingsDirPath);
 
                 File.WriteAllText(SettingsPath, content);
             }
