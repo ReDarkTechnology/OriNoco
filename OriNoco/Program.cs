@@ -11,6 +11,12 @@ namespace OriNoco
         public static RhineScene RhineScene = new RhineScene();
         public static CharterScene CharterScene = new CharterScene();
 
+        public static float Time 
+        {
+            get => RhineScene.time;
+            set => RhineScene.time = value;
+        }
+
         [STAThread]
         static void Main(string[] args)
         {

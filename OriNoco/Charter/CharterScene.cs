@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-
+using OriNoco.Rhine;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Interact;
 using Raylib_CSharp.Rendering;
@@ -13,22 +13,24 @@ namespace OriNoco.Charter
     {
         public float YPadding { get; set; } = 50f;
 
-        public TextureDrawable left = new TextureDrawable(default);
-        public TextureDrawable down = new TextureDrawable(default);
-        public TextureDrawable up = new TextureDrawable(default);
-        public TextureDrawable right = new TextureDrawable(default);
+        public TextureDrawable left = new (default);
+        public TextureDrawable down = new (default);
+        public TextureDrawable up = new (default);
+        public TextureDrawable right = new (default);
 
-        public TextureDrawable leftActive = new TextureDrawable(default);
-        public TextureDrawable downActive = new TextureDrawable(default);
-        public TextureDrawable upActive = new TextureDrawable(default);
+        public TextureDrawable leftActive = new (default);
+        public TextureDrawable downActive = new (default);
+        public TextureDrawable upActive = new (default);
 
-        public RhythmLane lane = new RhythmLane();
-        public TextureDrawable rightActive = new TextureDrawable(default);
+        public RhythmLane lane = new();
+        public TextureDrawable rightActive = new(default);
 
         public float xSpacing = 32f;
         public float yScale = 75f;
         public float yOffset = 0;
         private float mouseWheel;
+
+        public List<CharterNote> notes = new List<CharterNote>();
 
         public CharterScene() {}
 
@@ -64,28 +66,87 @@ namespace OriNoco.Charter
         public void ReadInputs()
         {
             if (Input.IsKeyPressed(KeyboardKey.Left))
-            {
+                OnActionPressed(Direction.Left);
+            if (Input.IsKeyPressed(KeyboardKey.Right))
+                OnActionPressed(Direction.Right);
+            if (Input.IsKeyPressed(KeyboardKey.Up))
+                OnActionPressed(Direction.Up);
+            if (Input.IsKeyPressed(KeyboardKey.Down))
+                OnActionPressed(Direction.Down);
+        }
 
+        public void OnActionPressed(Direction direction)
+        {
+            var existingNotes = FindNoteAtTime(Program.Time);
+            if (existingNotes.Count > 0)
+            {
+                var sameNote = existingNotes.Find(val => val.direction == direction);
+                if (sameNote != null)
+                {
+                    // Remove a note if it is already at the same position and direction
+                    RemoveNote(sameNote);
+                }
+                else
+                {
+                    // Check if a note already exists in the opposite direction, if it does, don't create a new one.
+                    switch (direction)
+                    {
+                        case Direction.Down:
+                            if (existingNotes.Exists(val => val.direction == Direction.Up))
+                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
+                            else
+                                CreateNote(direction, Program.Time);
+                            break;
+                        case Direction.Up:
+                            if (existingNotes.Exists(val => val.direction == Direction.Down))
+                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
+                            else
+                                CreateNote(direction, Program.Time);
+                            break;
+                        case Direction.Left:
+                            if (existingNotes.Exists(val => val.direction == Direction.Right))
+                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
+                            else
+                                CreateNote(direction, Program.Time);
+                            break;
+                        case Direction.Right:
+                            if (existingNotes.Exists(val => val.direction == Direction.Left))
+                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
+                            else
+                                CreateNote(direction, Program.Time);
+                            break;
+                    }
+                }
             }
-            else if (Input.IsKeyPressed(KeyboardKey.Right))
+            else
             {
-
+                CreateNote(direction, Program.Time);
             }
         }
+
+        public CharterNote CreateNote(Direction direction, float time)
+        {
+            var note = new CharterNote(this, time, direction);
+            note.UpdatePosition();
+            notes.Add(note);
+            return note;
+        }
+
+        public void RemoveNote(CharterNote note) => notes.Remove(note);
+
+        public List<CharterNote> FindNoteAtTime(float time) =>
+            notes.FindAll(val => MathF.Abs(val.time - time) < float.Epsilon);
 
         public void UpdateScroll()
         {
             mouseWheel = Input.GetMouseWheelMove();
-            if (mouseWheel > 0)
-            {
-                Program.RhineScene.time = lane.GetNextTime(Program.RhineScene.time);
-            }
-            else if (mouseWheel < 0)
-            {
-                Program.RhineScene.time = lane.GetPreviousTime(Program.RhineScene.time);
-            }
 
-            yOffset = Program.RhineScene.time * yScale;
+            if (mouseWheel > 0)
+                Program.Time = lane.GetNextTime(Program.Time);
+            else if (mouseWheel < 0)
+                Program.Time = lane.GetPreviousTime(Program.Time);
+
+            yOffset = Program.Time * yScale;
         }
 
         public override void Draw()
@@ -105,12 +166,15 @@ namespace OriNoco.Charter
             Graphics.DrawLineEx(new Vector2(screenCoord2.X, 0), new Vector2(screenCoord2.X, Window.GetScreenHeight() - YPadding), 1f, Color.Red);
             Graphics.DrawLineEx(new Vector2(screenCoord3.X, 0), new Vector2(screenCoord3.X, Window.GetScreenHeight() - YPadding), 1f, Color.Red);
 
-            float time = lane.GetNextTime(Program.RhineScene.time);
+            float time = lane.GetNextTime(Program.Time);
             for (int i = 0; i < 12; i++)
             {
                 Graphics.DrawLineEx(new Vector2(screenCoord.X, GetScreenY(time * yScale)), new Vector2(screenCoord3.X, GetScreenY(time * yScale)), 1f, Color.Green);
                 time = lane.GetNextTime(time);
             }
+
+            foreach (var note in notes)
+                note.Draw();
 
             leftActive.Draw(screenCoord, Color.White);
             downActive.Draw(screenCoord1, Color.White);
