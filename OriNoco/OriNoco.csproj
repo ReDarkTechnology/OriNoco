@@ -54,12 +54,6 @@
     <None Update="Images\up_active.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="libraylib.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="raylib.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Sounds\NULL APOPHENIA.ogg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -71,6 +65,21 @@
   <ItemGroup>
     <Folder Include="Images\" />
     <Folder Include="Fonts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+		<Content Condition="$([MSBuild]::IsOSPlatform('Windows'))" Include="../runtimes/win-x64/native/**/*.*">
+			<Link>runtimes/win-x64/native/%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+    <Content Condition="$([MSBuild]::IsOSPlatform('OSX'))" Include="../runtimes/osx-x64/native/**/*.*">
+			<Link>runtimes/osx-x64/native/%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+    <Content Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="../runtimes/linux-x64/native/**/*.*">
+			<Link>runtimes/linux-x64/native/%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
   </ItemGroup>
 
   <ItemGroup>
