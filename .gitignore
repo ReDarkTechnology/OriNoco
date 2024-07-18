@@ -330,6 +330,10 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
 
+# VSCode
+.vscode/
+
 # Local History for Visual Studio
 .localhistory/
 OriNoco/imgui.ini
+imgui.ini
