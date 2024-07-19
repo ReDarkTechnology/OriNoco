@@ -22,7 +22,6 @@ namespace OriNoco.Rhine
         public PredictableLane lane = new PredictableLane();
 
         public Music music;
-
         public float fontSize = 20;
         public float followSpeed = 1.5f;
         public float time = 0f;

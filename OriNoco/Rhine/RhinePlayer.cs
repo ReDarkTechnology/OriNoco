@@ -21,6 +21,7 @@ namespace OriNoco.Rhine
         public Direction direction = Direction.Up;
 
         public bool IsStarted { get; private set; }
+        public bool IsControllable { get; set; }
 
         private List<RhineTrail> trails = new List<RhineTrail>();
         private List<RhineTrail> deleteTrailQueue = new List<RhineTrail>();
@@ -84,98 +85,117 @@ namespace OriNoco.Rhine
         {
             if (IsStarted)
             {
-                if (mode == CreateMode.MainAndDiagonals)
+                if (IsControllable)
                 {
-                    if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
+                    if (mode == CreateMode.MainAndDiagonals)
                     {
-                        if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                        if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || 
+                            Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
                         {
-                            direction = Direction.LeftUp;
+                            if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
+                                Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                            {
+                                direction = Direction.LeftUp;
+                            }
+                            else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
+                                     Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                            {
+                                direction = Direction.LeftDown;
+                            }
+                            else
+                            {
+                                direction = Direction.Left;
+                            }
                         }
-                        else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                        else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || 
+                                 Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
                         {
-                            direction = Direction.LeftDown;
+                            if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
+                                Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                            {
+                                direction = Direction.RightUp;
+                            }
+                            else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
+                                     Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                            {
+                                direction = Direction.RightDown;
+                            }
+                            else
+                            {
+                                direction = Direction.Right;
+                            }
                         }
-                        else
+                        else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
+                                 Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                        {
+                            direction = Direction.Down;
+                        }
+                        else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
+                                 Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                        {
+                            direction = Direction.Up;
+                        }
+                    }
+                    else if (mode == CreateMode.Main)
+                    {
+                        if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || 
+                            Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
                         {
                             direction = Direction.Left;
                         }
-                    }
-                    else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
-                    {
-                        if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                        {
-                            direction = Direction.RightUp;
-                        }
-                        else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
-                        {
-                            direction = Direction.RightDown;
-                        }
-                        else
+                        else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || 
+                                 Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
                         {
                             direction = Direction.Right;
                         }
+                        else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
+                                 Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                        {
+                            direction = Direction.Down;
+                        }
+                        else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
+                                 Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
+                        {
+                            direction = Direction.Up;
+                        }
                     }
-                    else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
+                    else if (mode == CreateMode.Diagonals)
                     {
-                        direction = Direction.Down;
-                    }
-                    else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                    {
-                        direction = Direction.Up;
-                    }
-                }
-                else if (mode == CreateMode.Main)
-                {
-                    if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
-                    {
-                        direction = Direction.Left;
-                    }
-                    else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
-                    {
-                        direction = Direction.Right;
-                    }
-                    else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
-                    {
-                        direction = Direction.Down;
-                    }
-                    else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                    {
-                        direction = Direction.Up;
-                    }
-                }
-                else if (mode == CreateMode.Diagonals)
-                {
-                    if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
-                        && (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
-                    {
-                        direction = Direction.LeftUp;
-                    }
-                    else if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
-                        && (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
-                    {
-                        direction = Direction.LeftDown;
-                    }
-                    else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
-                        && (Input.IsKeyDown(Settings.Data.GameplayUpKey) || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
-                    {
-                        direction = Direction.RightUp;
-                    }
-                    else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
-                        && (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
-                    {
-                        direction = Direction.RightDown;
+                        if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
+                         && (Input.IsKeyDown(Settings.Data.GameplayUpKey)   || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
+                        {
+                            direction = Direction.LeftUp;
+                        }
+                        else if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
+                              && (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
+                        {
+                            direction = Direction.LeftDown;
+                        }
+                        else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
+                              && (Input.IsKeyDown(Settings.Data.GameplayUpKey)    || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
+                        {
+                            direction = Direction.RightUp;
+                        }
+                        else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
+                              && (Input.IsKeyDown(Settings.Data.GameplayDownKey)  || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
+                        {
+                            direction = Direction.RightDown;
+                        }
                     }
                 }
             }
             else
             {
-                /*if (Input.IsKeyPressed(Settings.Data.GameplayUpKey) || Input.IsKeyPressed(Settings.Data.GameplayAltUpKey))
+                if (IsControllable)
                 {
-                    CreateTail();
-                    Program.RhineScene.music.PlayStream();
-                    IsStarted = true;
-                }*/
+                    if (Input.IsKeyPressed(Settings.Data.GameplayUpKey) || 
+                        Input.IsKeyPressed(Settings.Data.GameplayAltUpKey))
+                    {
+                        CreateTail();
+                        Program.RhineScene.music.PlayStream();
+                        IsStarted = true;
+                    }
+                }
             }
 
             if (_direction != direction)
