@@ -28,13 +28,19 @@ namespace OriNoco
 
         public static void Start()
         {
-            Raylib.SetConfigFlags(ConfigFlags.Msaa4XHint | ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
+            Logger.SetTraceLogLevel(TraceLogLevel.Warning);
+            Raylib.SetConfigFlags(ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
             Window.Init(_WindowSize.X, _WindowSize.Y, "OriNoco");
             {
                 Window.SetMinSize(640, 360);
                 Window.SetIcon(Image.LoadFromMemory(".png", BuiltResources.OriNoco));
-                Logger.SetTraceLogLevel(TraceLogLevel.Warning);
                 Time.SetTargetFPS(100);
+
+                TextureDictionary.Init();
+                FontsDictionary.Init();
+
+                rlImGui.SetupUserFonts += val => FontsDictionary.InitImGui();
+
                 AudioDevice.Init();
                 {
                     AudioDevice.SetMasterVolume(1f);

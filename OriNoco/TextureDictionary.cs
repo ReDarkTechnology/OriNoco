@@ -17,7 +17,7 @@ namespace OriNoco
         public static Texture2D right { get; private set; }
         public static Texture2D rightActive { get; private set; }
 
-        static TextureDictionary()
+        public static void Init()
         {
             note = Texture2D.Load("Images/note.png");
             arrow = Texture2D.Load("Images/arrow.png");

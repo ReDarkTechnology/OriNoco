@@ -60,10 +60,7 @@ namespace OriNoco
         public static void SetNextWindowBgAlpha(float alpha) => ImGui.SetNextWindowBgAlpha(alpha);
 
         public static void BeginGroup() => ImGui.BeginGroup();
-        public static void EndGroup()
-        {
-            ImGui.EndGroup();
-        }
+        public static void EndGroup() => ImGui.EndGroup();
 
         public static void PushID(string id) => ImGui.PushID(id);
         public static void PopID() => ImGui.PopID();
@@ -88,6 +85,9 @@ namespace OriNoco
             return value;
         }
 
+        /// <summary>
+        /// ComboBox for an Enum, doesn't support Flags
+        /// </summary>
         public static T ComboBox<T>(string label, T value) where T : Enum
         {
             if (ImGui.BeginCombo(label, value.ToString("G")))
@@ -103,29 +103,6 @@ namespace OriNoco
             return value;
         }
 
-        /// <summary>
-        /// Imports a font from a TTF file
-        /// </summary>
-        public static GUIFont ImportFont(string fileName, int size = 20) => new(ImGui.GetIO().Fonts.AddFontFromFileTTF(fileName, size));
-        /// <summary>
-        /// Applies the font
-        /// </summary>
-        public static void ApplyFont(GUIFont font) => ImGui.PushFont(font.GetPointer());
-        /// <summary>
-        /// Gets the current font
-        /// </summary>
-        public static GUIFont GetFont() => new(ImGui.GetFont());
-
         public static bool IsOverAnyElement { get; private set; }
-    }
-
-    /// <summary>
-    /// Simple wrapper for ImFontPtr just in case I moved to another library
-    /// </summary>
-    public class GUIFont
-    {
-        private ImFontPtr fontPointer;
-        public GUIFont(ImFontPtr pointer) => this.fontPointer = pointer;
-        public ImFontPtr GetPointer() => fontPointer;
     }
 }

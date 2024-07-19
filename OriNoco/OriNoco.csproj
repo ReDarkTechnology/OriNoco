@@ -21,6 +21,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Fonts\CaviarDreams.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fonts\GeoSansLight.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fonts\Kiona.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Images\arrow.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -64,7 +73,6 @@
 
   <ItemGroup>
     <Folder Include="Images\" />
-    <Folder Include="Fonts\" />
   </ItemGroup>
 
   <ItemGroup>

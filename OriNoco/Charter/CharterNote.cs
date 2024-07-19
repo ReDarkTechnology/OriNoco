@@ -18,7 +18,7 @@ namespace OriNoco.Charter
         public TextureDrawable drawable = new TextureDrawable(default);
 
         private CharterScene charterScene;
-        private Vector2 cachedPosition;
+        public Vector2 cachedPosition;
 
         public CharterNote() { 
             charterScene = Program.CharterScene;

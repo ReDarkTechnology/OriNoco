@@ -132,6 +132,12 @@ namespace OriNoco.Charter
             return note;
         }
 
+        public void UpdateNotePositions()
+        {
+            foreach (var note in notes)
+                note.UpdatePosition();
+        }
+
         public void RemoveNote(CharterNote note) => notes.Remove(note);
 
         public List<CharterNote> FindNoteAtTime(float time) =>
@@ -142,9 +148,15 @@ namespace OriNoco.Charter
             mouseWheel = Input.GetMouseWheelMove();
 
             if (mouseWheel > 0)
+            {
                 Program.Time = lane.GetNextTime(Program.Time);
+                UpdateNotePositions();
+            }
             else if (mouseWheel < 0)
+            {
                 Program.Time = lane.GetPreviousTime(Program.Time);
+                UpdateNotePositions();
+            }
 
             yOffset = Program.Time * yScale;
         }

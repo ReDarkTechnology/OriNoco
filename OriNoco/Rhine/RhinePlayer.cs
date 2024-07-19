@@ -170,12 +170,12 @@ namespace OriNoco.Rhine
             }
             else
             {
-                if (Input.IsKeyPressed(Settings.Data.GameplayUpKey) || Input.IsKeyPressed(Settings.Data.GameplayAltUpKey))
+                /*if (Input.IsKeyPressed(Settings.Data.GameplayUpKey) || Input.IsKeyPressed(Settings.Data.GameplayAltUpKey))
                 {
                     CreateTail();
                     Program.RhineScene.music.PlayStream();
                     IsStarted = true;
-                }
+                }*/
             }
 
             if (_direction != direction)

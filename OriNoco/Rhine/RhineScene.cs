@@ -6,6 +6,7 @@ using OriNoco.Serializer;
 using Raylib_CSharp;
 using Raylib_CSharp.Audio;
 using Raylib_CSharp.Colors;
+using Raylib_CSharp.Fonts;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
 
@@ -22,9 +23,12 @@ namespace OriNoco.Rhine
 
         public Music music;
 
+        public float fontSize = 20;
         public float followSpeed = 1.5f;
         public float time = 0f;
         public float bpm = 120f;
+
+        public Font mainFont;
 
         public List<RhineNote> notes = new List<RhineNote>();
         private bool wasHovering;
@@ -47,6 +51,7 @@ namespace OriNoco.Rhine
             noteDrawable.Texture = TextureDictionary.note;
             noteDrawable.Scale = new Vector2(0.2f);
             music = Music.Load("Sounds/NULL APOPHENIA.ogg");
+            mainFont = FontsDictionary.GeoSansLight;
         }
 
         public override void Update()
@@ -67,12 +72,12 @@ namespace OriNoco.Rhine
         {
             Graphics.BeginScissorMode(0, 0, Window.GetScreenWidth() - 300, Window.GetScreenHeight());
             Graphics.ClearBackground(backgroundColor);
-
-            Graphics.DrawText("OriNoco", 10, 10, 20, Color.White);
-            Graphics.DrawText($"FPS: {Time.GetFPS()}", 10, 30, 20, Color.White);
-            Graphics.DrawText($"Notes: {notes.Count}", 10, 50, 20, Color.White);
-            Graphics.DrawText($"Music: N² - NULL APOPHENIA", 10, 70, 20, Color.White);
-            Graphics.DrawText($"Time: {time}", 10, 90, 20, Color.White);
+            
+            Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 10), new Vector2(0, 0), 0, fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"FPS: {Time.GetFPS()}", new Vector2(10, 30), fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"Notes: {notes.Count}", new Vector2(10, 50), fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"Music: N² - NULL APOPHENIA", new Vector2(10, 70), fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"Time: {time}", new Vector2(10, 90), fontSize, 5, Color.White);
 
             float distance = 1f;
 
@@ -117,6 +122,7 @@ namespace OriNoco.Rhine
                 GUI.Separator();
 
                 GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "UI");
+                fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
                 GUI.Text($"Hovering GUI: " + wasHovering);
 
                 GUI.Separator();
