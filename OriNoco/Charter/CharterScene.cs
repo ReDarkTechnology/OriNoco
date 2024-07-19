@@ -31,7 +31,6 @@ namespace OriNoco.Charter
         private float mouseWheel;
 
         public ColorF judgementNoteColor = new ColorF(0.8f, 0.8f, 0.8f, 1f);
-
         public List<CharterNote> notes = new List<CharterNote>();
 
         public CharterScene() {}

@@ -23,8 +23,8 @@ namespace OriNoco.Rhine
         public bool IsStarted { get; private set; }
         public bool IsControllable { get; set; }
 
-        private List<RhineTrail> trails = new List<RhineTrail>();
-        private List<RhineTrail> deleteTrailQueue = new List<RhineTrail>();
+        private List<RhineTrail> trails = [];
+        private List<RhineTrail> deleteTrailQueue = [];
 
         public List<RhineNote> notes => Program.RhineScene.notes;
         #endregion
@@ -33,13 +33,9 @@ namespace OriNoco.Rhine
         public RhinePlayer(bool loadTexture = true)
         {
             if (loadTexture)
-            {
                 drawable = new TextureDrawable(TextureDictionary.note);
-            }
             else
-            {
                 drawable = new TextureDrawable(default);
-            }
 
             drawable.Color = new Color(0, 173, 91, 255);
         }
@@ -94,93 +90,61 @@ namespace OriNoco.Rhine
                         {
                             if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
                                 Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                            {
                                 direction = Direction.LeftUp;
-                            }
                             else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
                                      Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
-                            {
                                 direction = Direction.LeftDown;
-                            }
                             else
-                            {
                                 direction = Direction.Left;
-                            }
                         }
                         else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || 
                                  Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
                         {
                             if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
                                 Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                            {
                                 direction = Direction.RightUp;
-                            }
                             else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
                                      Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
-                            {
                                 direction = Direction.RightDown;
-                            }
                             else
-                            {
                                 direction = Direction.Right;
-                            }
                         }
                         else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
                                  Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
-                        {
                             direction = Direction.Down;
-                        }
                         else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
                                  Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                        {
                             direction = Direction.Up;
-                        }
                     }
                     else if (mode == CreateMode.Main)
                     {
                         if (Input.IsKeyDown(Settings.Data.GameplayLeftKey) || 
                             Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
-                        {
                             direction = Direction.Left;
-                        }
                         else if (Input.IsKeyDown(Settings.Data.GameplayRightKey) || 
                                  Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
-                        {
                             direction = Direction.Right;
-                        }
                         else if (Input.IsKeyDown(Settings.Data.GameplayDownKey) || 
                                  Input.IsKeyDown(Settings.Data.GameplayAltDownKey))
-                        {
                             direction = Direction.Down;
-                        }
                         else if (Input.IsKeyDown(Settings.Data.GameplayUpKey) || 
                                  Input.IsKeyDown(Settings.Data.GameplayAltUpKey))
-                        {
                             direction = Direction.Up;
-                        }
                     }
                     else if (mode == CreateMode.Diagonals)
                     {
                         if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
                          && (Input.IsKeyDown(Settings.Data.GameplayUpKey)   || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
-                        {
                             direction = Direction.LeftUp;
-                        }
                         else if ((Input.IsKeyDown(Settings.Data.GameplayLeftKey) || Input.IsKeyDown(Settings.Data.GameplayAltLeftKey))
                               && (Input.IsKeyDown(Settings.Data.GameplayDownKey) || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
-                        {
                             direction = Direction.LeftDown;
-                        }
                         else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
                               && (Input.IsKeyDown(Settings.Data.GameplayUpKey)    || Input.IsKeyDown(Settings.Data.GameplayAltUpKey)))
-                        {
                             direction = Direction.RightUp;
-                        }
                         else if ((Input.IsKeyDown(Settings.Data.GameplayRightKey) || Input.IsKeyDown(Settings.Data.GameplayAltRightKey))
                               && (Input.IsKeyDown(Settings.Data.GameplayDownKey)  || Input.IsKeyDown(Settings.Data.GameplayAltDownKey)))
-                        {
                             direction = Direction.RightDown;
-                        }
                     }
                 }
             }
