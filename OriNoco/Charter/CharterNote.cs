@@ -19,6 +19,7 @@ namespace OriNoco.Charter
 
         private CharterScene charterScene;
         public Vector2 cachedPosition;
+        private float xPosition;
 
         public CharterNote() { 
             charterScene = Program.CharterScene;
@@ -37,24 +38,25 @@ namespace OriNoco.Charter
             {
                 case Direction.Left:
                     drawable = charterScene.left;
-                    break;
-                case Direction.Right:
-                    drawable = charterScene.right;
-                    break;
-                case Direction.Up:
-                    drawable = charterScene.up;
+                    xPosition = charterScene.xSpacing * -3f;
                     break;
                 case Direction.Down:
                     drawable = charterScene.down;
+                    xPosition = charterScene.xSpacing * -1f;
+                    break;
+                case Direction.Up:
+                    drawable = charterScene.up;
+                    xPosition = charterScene.xSpacing * 1f;
+                    break;
+                case Direction.Right:
+                    drawable = charterScene.right;
+                    xPosition = charterScene.xSpacing * 3f;
                     break;
             }
         }
 
-        public void UpdatePosition()
-        {
-            Vector2 mainCoords = charterScene.GetScreenCoords(new Vector2(0f, 0f));
-            cachedPosition = new (mainCoords.X, charterScene.GetScreenY(time * charterScene.yScale));
-        }
+        public void UpdatePosition() =>
+            cachedPosition = charterScene.GetScreenCoords(new Vector2(xPosition, time * charterScene.yScale), true).InvertY();
 
         public void Draw()
         {

@@ -30,6 +30,8 @@ namespace OriNoco.Charter
         public float yOffset = 0;
         private float mouseWheel;
 
+        public ColorF judgementNoteColor = new ColorF(0.8f, 0.8f, 0.8f, 1f);
+
         public List<CharterNote> notes = new List<CharterNote>();
 
         public CharterScene() {}
@@ -149,16 +151,15 @@ namespace OriNoco.Charter
 
             if (mouseWheel > 0)
             {
-                Program.Time = lane.GetNextTime(Program.Time);
-                UpdateNotePositions();
+                Program.Time = lane.GetPreviousTime(Program.Time);
             }
             else if (mouseWheel < 0)
             {
-                Program.Time = lane.GetPreviousTime(Program.Time);
-                UpdateNotePositions();
+                Program.Time = lane.GetNextTime(Program.Time);
             }
 
             yOffset = Program.Time * yScale;
+            UpdateNotePositions();
         }
 
         public override void Draw()
@@ -185,13 +186,13 @@ namespace OriNoco.Charter
                 time = lane.GetNextTime(time);
             }
 
+            leftActive.Draw(screenCoord, judgementNoteColor);
+            downActive.Draw(screenCoord1, judgementNoteColor);
+            upActive.Draw(screenCoord2, judgementNoteColor);
+            rightActive.Draw(screenCoord3, judgementNoteColor);
+
             foreach (var note in notes)
                 note.Draw();
-
-            leftActive.Draw(screenCoord, Color.White);
-            downActive.Draw(screenCoord1, Color.White);
-            upActive.Draw(screenCoord2, Color.White);
-            rightActive.Draw(screenCoord3, Color.White);
 
             Graphics.EndScissorMode();
         }
@@ -199,10 +200,10 @@ namespace OriNoco.Charter
         public override Vector2 GetViewportSize() =>  
             new(300, base.GetViewportSize().Y);
 
-        public Vector2 GetScreenCoords(Vector2 point)
+        public Vector2 GetScreenCoords(Vector2 point, bool useOffset = false)
         {
             float xPosition = Window.GetScreenWidth() - 300;
-            return new Vector2(xPosition + (300f / 2f) + point.X, Window.GetScreenHeight() - YPadding - point.Y);
+            return new Vector2(xPosition + (300f / 2f) + point.X, Window.GetScreenHeight() - YPadding - point.Y + (useOffset ? yOffset : 0));
         }
 
         public float GetScreenY(float y)
