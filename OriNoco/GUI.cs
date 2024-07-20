@@ -19,6 +19,7 @@ namespace OriNoco
 
         public static bool BeginWindow(string name) => ImGui.Begin(name);
         public static void BeginWindow(string name, ref bool open) => ImGui.Begin(name, ref open);
+        public static void BeginWindow(string name, ref bool open, ImGuiWindowFlags flags) => ImGui.Begin(name, ref open, flags);
         public static bool BeginWindow(string name, ImGuiWindowFlags flags) => ImGui.Begin(name, flags);
         public static void EndWindow()
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Text.Json.Serialization;
+using ImGuiNET;
 using OriNoco.Serializer;
 using Raylib_CSharp;
 using Raylib_CSharp.Audio;
@@ -72,11 +73,11 @@ namespace OriNoco.Rhine
             Graphics.BeginScissorMode(0, 0, Window.GetScreenWidth() - 300, Window.GetScreenHeight());
             Graphics.ClearBackground(backgroundColor);
             
-            Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 10), new Vector2(0, 0), 0, fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"FPS: {Time.GetFPS()}", new Vector2(10, 30), fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"Notes: {notes.Count}", new Vector2(10, 50), fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"Music: N² - NULL APOPHENIA", new Vector2(10, 70), fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"Time: {time}", new Vector2(10, 90), fontSize, 5, Color.White);
+            Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"FPS: {Time.GetFPS()}", new Vector2(10, 50), fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"Notes: {notes.Count}", new Vector2(10, 70), fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"Music: N² - NULL APOPHENIA", new Vector2(10, 90), fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"Time: {time}", new Vector2(10, 110), fontSize, 5, Color.White);
 
             viewport.Begin();
 
@@ -193,90 +194,103 @@ namespace OriNoco.Rhine
         {
             if (showWindow)
             {
-                GUI.BeginWindow("Rhine Settings", ref showWindow);
+                var size = GetViewportSize();
+                GUI.SetNextWindowPos(new Vector2(0, size.Y - 200));
+                GUI.SetNextWindowSize(new Vector2(size.X, 200));
+                GUI.BeginWindow("Properties", ref showWindow, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
                 {
-                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Player");
-                    GUI.Text($"Position: {player.drawable.Position}");
-                    GUI.Text($"Direction: {player.direction}");
-                    player.mode = GUI.ComboBox("Create Mode", player.mode);
-                    player.speed = GUI.Slider("Speed", player.speed, 1f, 20f);
-
-                    GUI.Separator();
-
-                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Camera");
-                    GUI.Text($"Position: {viewport.Position}");
-                    viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
-                    followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
-
-                    GUI.Separator();
-
-                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "UI");
-                    fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
-                    GUI.Text($"Hovering GUI: " + GUI.IsOverAnyElement);
-
-                    GUI.Separator();
-
-                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
-
-                    if (GUI.Button("Save"))
+                    if (ImGui.BeginTable("Settings", 2, ImGuiTableFlags.Borders))
                     {
-                        var serializables = new List<NoteSerializable>();
-                        foreach (var note in notes)
-                            serializables.Add(new NoteSerializable(note));
-                        File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
-                    }
+                        ImGui.TableNextRow();
+                        ImGui.TableSetColumnIndex(0);
+
+                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Player");
+                        GUI.Text($"Position: {player.drawable.Position}");
+                        GUI.Text($"Direction: {player.direction}");
+                        player.mode = GUI.ComboBox("Create Mode", player.mode);
+                        player.speed = GUI.Slider("Speed", player.speed, 1f, 20f);
 
 
-                    if (File.Exists("notes.json"))
-                    {
-                        GUI.SameLine();
-                        if (GUI.Button("Load"))
+                        ImGui.TableSetColumnIndex(1);
+                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Camera");
+                        GUI.Text($"Position: {viewport.Position}");
+                        viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
+                        followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
+
+
+                        ImGui.TableNextRow();
+
+                        ImGui.TableSetColumnIndex(0);
+                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "UI");
+                        fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
+                        GUI.Text($"Hovering GUI: " + GUI.IsOverAnyElement);
+
+
+                        ImGui.TableSetColumnIndex(1);
+                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
+
+                        if (GUI.Button("Save"))
                         {
-                            var serializables = MainSerializer.Deserialize<List<NoteSerializable>>(File.ReadAllText("notes.json"));
-                            if (serializables != null)
+                            var serializables = new List<NoteSerializable>();
+                            foreach (var note in notes)
+                                serializables.Add(new NoteSerializable(note));
+                            File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
+                        }
+
+
+                        if (File.Exists("notes.json"))
+                        {
+                            GUI.SameLine();
+                            if (GUI.Button("Load"))
                             {
-                                notes.Clear();
-                                foreach (var serializable in serializables)
+                                var serializables = MainSerializer.Deserialize<List<NoteSerializable>>(File.ReadAllText("notes.json"));
+                                if (serializables != null)
                                 {
-                                    CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
-                                    switch (serializable.Direction)
+                                    notes.Clear();
+                                    foreach (var serializable in serializables)
                                     {
-                                        case Direction.Left:
-                                            Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
-                                            break;
-                                        case Direction.Down:
-                                            Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
-                                            break;
-                                        case Direction.Up:
-                                            Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
-                                            break;
-                                        case Direction.Right:
-                                            Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
-                                            break;
-                                        case Direction.LeftUp:
-                                            Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
-                                            Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
-                                            break;
-                                        case Direction.LeftDown:
-                                            Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
-                                            Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
-                                            break;
-                                        case Direction.RightUp:
-                                            Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
-                                            Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
-                                            break;
-                                        case Direction.RightDown:
-                                            Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
-                                            Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
-                                            break;
+                                        CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
+                                        switch (serializable.Direction)
+                                        {
+                                            case Direction.Left:
+                                                Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
+                                                break;
+                                            case Direction.Down:
+                                                Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
+                                                break;
+                                            case Direction.Up:
+                                                Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
+                                                break;
+                                            case Direction.Right:
+                                                Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
+                                                break;
+                                            case Direction.LeftUp:
+                                                Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
+                                                Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
+                                                break;
+                                            case Direction.LeftDown:
+                                                Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
+                                                Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
+                                                break;
+                                            case Direction.RightUp:
+                                                Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
+                                                Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
+                                                break;
+                                            case Direction.RightDown:
+                                                Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
+                                                Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
+                                                break;
+                                        }
                                     }
                                 }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Failed to load notes");
+                                else
+                                {
+                                    Console.WriteLine("Failed to load notes");
+                                }
                             }
                         }
+
+                        ImGui.EndTable();
                     }
                 }
                 GUI.EndWindow();

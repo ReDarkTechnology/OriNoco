@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection.Metadata;
+using ImGuiNET;
 using OriNoco.Rhine;
 using Raylib_CSharp;
 using Raylib_CSharp.Colors;
@@ -67,6 +69,44 @@ namespace OriNoco.Charter
 
         public override void DrawGUI()
         {
+            ImGui.BeginMainMenuBar();
+            if (ImGui.BeginMenu("File"))
+            {
+                if (ImGui.MenuItem("New"))
+
+
+                if (ImGui.MenuItem("Open"))
+                {
+                }
+                if (ImGui.MenuItem("Save"))
+                {
+                }
+                if (ImGui.MenuItem("Save As"))
+                {
+                }
+                if (ImGui.MenuItem("Exit"))
+                {
+                    Window.Close();
+                }
+
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Edit"))
+            {
+                if (ImGui.MenuItem("Refresh"))
+                {
+                }
+                ImGui.EndMenu();
+            }
+
+            if (ImGui.BeginMenu("Run"))
+            {
+                ImGui.Text("Not yet :(");
+                ImGui.EndMenu();
+            }
+
+            ImGui.EndMainMenuBar();
         }
 
         public void ReadInputs()
@@ -202,15 +242,18 @@ namespace OriNoco.Charter
         {
             mouseWheel = Input.GetMouseWheelMove();
 
-            if (mouseWheel > 0)
+            if (!GUI.IsOverAnyElement)
             {
-                Program.Time = lane.GetPreviousTime(Program.Time);
-                PostScrollUpdate();
-            }
-            else if (mouseWheel < 0)
-            {
-                Program.Time = lane.GetNextTime(Program.Time);
-                PostScrollUpdate();
+                if (mouseWheel > 0)
+                {
+                    Program.Time = lane.GetPreviousTime(Program.Time);
+                    PostScrollUpdate();
+                }
+                else if (mouseWheel < 0)
+                {
+                    Program.Time = lane.GetNextTime(Program.Time);
+                    PostScrollUpdate();
+                }
             }
         }
 
