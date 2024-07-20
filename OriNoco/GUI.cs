@@ -7,14 +7,7 @@ namespace OriNoco
 {
     public static class GUI
     {
-        /// <summary>
-        /// Perpare to draw GUI elemsnts, this also sets IsOverAnyElement to false so cache it before this call to use it
-        /// </summary>
-        public static void Begin()
-        {
-            IsOverAnyElement = false;
-            rlImGui.Begin();
-        }
+        public static void Begin() => rlImGui.Begin();
         public static void End() => rlImGui.End();
 
         public static bool Toggle(string label, bool value) => Checkbox(label, value);
@@ -25,11 +18,12 @@ namespace OriNoco
         }
 
         public static bool BeginWindow(string name) => ImGui.Begin(name);
+        public static void BeginWindow(string name, ref bool open) => ImGui.Begin(name, ref open);
         public static bool BeginWindow(string name, ImGuiWindowFlags flags) => ImGui.Begin(name, flags);
         public static void EndWindow()
         {
-            if (!IsOverAnyElement)
-                IsOverAnyElement = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) || ImGui.IsMouseHoveringRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), true);
+            if (!_IsOverAnyElement)
+                _IsOverAnyElement = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) || ImGui.IsMouseHoveringRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), true);
             ImGui.End();
         }
 
@@ -50,8 +44,8 @@ namespace OriNoco
         public static void BeginChild(string name, Vector2 size) => ImGui.BeginChild(name, size);
         public static void EndChild()
         {
-            if (!IsOverAnyElement)
-                IsOverAnyElement = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) || ImGui.IsMouseHoveringRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), true);
+            if (!_IsOverAnyElement)
+                _IsOverAnyElement = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) || ImGui.IsMouseHoveringRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), true);
             ImGui.EndChild();
         }
 
@@ -103,6 +97,10 @@ namespace OriNoco
             return value;
         }
 
+        public static void StartUpdate() => _IsOverAnyElement = false;
+        public static void EndUpdate() => IsOverAnyElement = _IsOverAnyElement;
+
         public static bool IsOverAnyElement { get; private set; }
+        private static bool _IsOverAnyElement = false;
     }
 }

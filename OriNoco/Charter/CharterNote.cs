@@ -53,6 +53,7 @@ namespace OriNoco.Charter
                     xPosition = charterScene.xSpacing * 3f;
                     break;
             }
+            this.direction = direction;
         }
 
         public void UpdatePosition() =>

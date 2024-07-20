@@ -1,7 +1,5 @@
-﻿using Raylib_CSharp.Transformations;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Numerics;
+using Raylib_CSharp.Transformations;
 
 
 namespace OriNoco
@@ -11,6 +9,7 @@ namespace OriNoco
         public static bool Intersects(Rectangle a, Rectangle b) =>
             a.X < b.X + b.Width && a.X + a.Width > b.X && a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
 
-
+        public static bool PointInsideRect(Rectangle rect, Vector2 point) =>
+            point.X > rect.X && point.X < rect.X + rect.Width && point.Y > rect.Y && point.Y < rect.Y + rect.Height;
     }
 }

@@ -51,6 +51,7 @@ namespace OriNoco
 
                         while (!Window.ShouldClose())
                         {
+                            GUI.StartUpdate();
                             foreach (var scene in Scenes) scene.Update();
 
                             Graphics.BeginDrawing();
@@ -62,6 +63,7 @@ namespace OriNoco
 
                             foreach (var scene in Scenes) scene.PostRender();
                             Graphics.EndDrawing();
+                            GUI.EndUpdate();
                         }
 
                         foreach (var scene in Scenes)

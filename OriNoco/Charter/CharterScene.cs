@@ -64,6 +64,10 @@ namespace OriNoco.Charter
             ReadInputs();
         }
 
+        public override void DrawGUI()
+        {
+        }
+
         public void ReadInputs()
         {
             if (Input.IsKeyPressed(KeyboardKey.Left))

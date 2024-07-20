@@ -14,6 +14,7 @@ namespace OriNoco.Rhine
 {
     public class RhineScene : Scene
     {
+        public bool showWindow = true;
         private Color backgroundColor = Color.Black;
         private RhinePlayer player;
         private Viewport2D viewport;
@@ -30,7 +31,6 @@ namespace OriNoco.Rhine
         public Font mainFont;
 
         public List<RhineNote> notes = new List<RhineNote>();
-        private bool wasHovering;
 
         public RhineScene()
         {
@@ -55,7 +55,6 @@ namespace OriNoco.Rhine
 
         public override void Update()
         {
-            wasHovering = GUI.IsOverAnyElement;
             if (player.IsStarted)
             {
                 time += Time.GetFrameTime();
@@ -103,39 +102,42 @@ namespace OriNoco.Rhine
 
         public override void DrawGUI()
         {
-            GUI.BeginWindow("Rhine Settings");
+            if (showWindow)
             {
-                GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Player");
-                GUI.Text($"Position: {player.drawable.Position}");
-                GUI.Text($"Direction: {player.direction}");
-                player.mode = GUI.ComboBox("Create Mode", player.mode);
-                player.speed = GUI.Slider("Speed", player.speed, 1f, 20f);
-
-                GUI.Separator();
-
-                GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Camera");
-                GUI.Text($"Position: {viewport.Position}");
-                viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
-                followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
-
-                GUI.Separator();
-
-                GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "UI");
-                fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
-                GUI.Text($"Hovering GUI: " + wasHovering);
-
-                GUI.Separator();
-
-                GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
-                if (GUI.Button("Save"))
+                GUI.BeginWindow("Rhine Settings", ref showWindow);
                 {
-                    var serializables = new List<NoteSerializable>();
-                    foreach (var note in notes)
-                        serializables.Add(new NoteSerializable(note));
-                    File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
+                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Player");
+                    GUI.Text($"Position: {player.drawable.Position}");
+                    GUI.Text($"Direction: {player.direction}");
+                    player.mode = GUI.ComboBox("Create Mode", player.mode);
+                    player.speed = GUI.Slider("Speed", player.speed, 1f, 20f);
+
+                    GUI.Separator();
+
+                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Camera");
+                    GUI.Text($"Position: {viewport.Position}");
+                    viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
+                    followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
+
+                    GUI.Separator();
+
+                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "UI");
+                    fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
+                    GUI.Text($"Hovering GUI: " + GUI.IsOverAnyElement);
+
+                    GUI.Separator();
+
+                    GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
+                    if (GUI.Button("Save"))
+                    {
+                        var serializables = new List<NoteSerializable>();
+                        foreach (var note in notes)
+                            serializables.Add(new NoteSerializable(note));
+                        File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
+                    }
                 }
+                GUI.EndWindow();
             }
-            GUI.EndWindow();
         }
 
         public override void Shutdown()
