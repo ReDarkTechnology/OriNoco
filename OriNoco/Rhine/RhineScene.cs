@@ -11,6 +11,7 @@ using Raylib_CSharp.Colors;
 using Raylib_CSharp.Fonts;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
+using Point = System.Drawing.Point;
 
 namespace OriNoco.Rhine
 {
@@ -29,6 +30,9 @@ namespace OriNoco.Rhine
         public float followSpeed = 1.5f;
         public float time = 0f;
         public float bpm = 120f;
+
+        public Point viewportOffset = new Point(0, 20);
+        public Point viewportScaleOffset = new Point(300, 220);
 
         public Font mainFont;
 
@@ -57,6 +61,17 @@ namespace OriNoco.Rhine
 
         public override void Update()
         {
+            if (showWindow)
+            {
+                viewportOffset = new Point(0, 20);
+                viewportScaleOffset = new Point(300, 220);
+            }
+            else
+            {
+                viewportOffset = new Point(0, 20);
+                viewportScaleOffset = new Point(300, 20);
+            }
+
             if (player.IsStarted)
             {
                 time += Time.GetFrameTime();
@@ -70,7 +85,7 @@ namespace OriNoco.Rhine
 
         public override void Draw()
         {
-            Graphics.BeginScissorMode(0, 0, Window.GetScreenWidth() - 300, Window.GetScreenHeight());
+            Graphics.BeginScissorMode(viewportOffset.X, viewportOffset.Y, Window.GetScreenWidth() - viewportScaleOffset.X, Window.GetScreenHeight() - viewportScaleOffset.Y);
             Graphics.ClearBackground(backgroundColor);
             
             Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 5, Color.White);
@@ -89,7 +104,7 @@ namespace OriNoco.Rhine
             Graphics.EndScissorMode();
         }
 
-        public void DrawPoint(Vector2 point, float thickness, Color color)
+        public static void DrawPoint(Vector2 point, float thickness, Color color)
         {
             Graphics.DrawLineEx(new Vector2(0, point.Y), new Vector2(Window.GetScreenWidth(), point.Y), thickness, color);
             Graphics.DrawLineEx(new Vector2(point.X, 0), new Vector2(point.X, Window.GetScreenHeight()), thickness, color);
@@ -222,7 +237,7 @@ namespace OriNoco.Rhine
             if (showWindow)
             {
                 var size = GetViewportSize();
-                GUI.SetNextWindowPos(new Vector2(0, size.Y - 200));
+                GUI.SetNextWindowPos(new Vector2(0, size.Y + 20));
                 GUI.SetNextWindowSize(new Vector2(size.X, 200));
                 GUI.BeginWindow("Properties", ref showWindow, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
                 {
@@ -299,11 +314,14 @@ namespace OriNoco.Rhine
         public override Vector2 GetViewportSize()
         {
             var size = base.GetViewportSize();
-            size.X = size.X - 300;
+            size.X -= viewportScaleOffset.X;
+            size.Y -= viewportScaleOffset.Y;
             return size;
         }
 
-        [System.Serializable]
+        public override Vector2 GetViewportOffset() => new Vector2(viewportOffset.X, viewportOffset.Y);
+
+        [Serializable]
         public class NoteSerializable
         {
             [JsonPropertyName("position")]

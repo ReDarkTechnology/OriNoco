@@ -50,7 +50,7 @@ namespace OriNoco
         /// </summary>
         public void Update()
         {
-            camera2D.Offset = scene.GetViewportSize() / 2;
+            camera2D.Offset = scene.GetViewportOffset() + (scene.GetViewportSize() / 2);
             camera2D.Zoom = GetSize();
         }
 

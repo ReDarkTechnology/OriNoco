@@ -102,9 +102,9 @@ namespace OriNoco.Charter
                 ImGui.EndMenu();
             }
 
-            if (ImGui.BeginMenu("Run"))
+            if (ImGui.BeginMenu("Window"))
             {
-                ImGui.Text("Not yet :(");
+                ImGui.Selectable("Properties", ref Program.RhineScene.showWindow);
                 ImGui.EndMenu();
             }
 

@@ -40,5 +40,10 @@ namespace OriNoco
         /// </summary>
         public virtual Vector2 GetViewportSize() =>
             new Vector2(Window.GetScreenWidth(), Window.GetScreenHeight());
+
+        /// <summary>
+        /// Gets the viewport offset, also used for Viewport2D and Viewport3D
+        /// </summary>
+        public virtual Vector2 GetViewportOffset() => Vector2.Zero;
     }
 }
