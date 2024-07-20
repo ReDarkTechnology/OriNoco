@@ -17,7 +17,7 @@ namespace OriNoco.Charter
         private float xPosition;
 
         public CharterNote() { 
-            charterScene = Program.CharterScene;
+            charterScene = Program.Charter;
         }
 
         public CharterNote(CharterScene scene, float time, Direction direction)

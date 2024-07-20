@@ -91,7 +91,6 @@ namespace OriNoco.Rhine
             Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 5, Color.White);
             Graphics.DrawTextEx(mainFont, $"FPS: {Time.GetFPS()}", new Vector2(10, 50), fontSize, 5, Color.White);
             Graphics.DrawTextEx(mainFont, $"Notes: {notes.Count}", new Vector2(10, 70), fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"Music: N² - NULL APOPHENIA", new Vector2(10, 90), fontSize, 5, Color.White);
             Graphics.DrawTextEx(mainFont, $"Time: {time}", new Vector2(10, 110), fontSize, 5, Color.White);
 
             viewport.Begin();
@@ -153,7 +152,7 @@ namespace OriNoco.Rhine
         public void UpdateNote(float time)
         {
             var note = GetNoteAtTime(time);
-            var direction = Program.CharterScene.GetDirectionAtTime(time);
+            var direction = Program.Charter.GetDirectionAtTime(time);
 
             if (note != null)
             {
@@ -289,7 +288,7 @@ namespace OriNoco.Rhine
                                     foreach (var serializable in serializables)
                                     {
                                         CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
-                                        Program.CharterScene.EvaulateDirectionToCreateNote(serializable.Direction, serializable.Time);
+                                        Program.Charter.EvaulateDirectionToCreateNote(serializable.Direction, serializable.Time);
                                     }
                                 }
                                 else

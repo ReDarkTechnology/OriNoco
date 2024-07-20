@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection.Metadata;
-using System.Runtime.Serialization;
+
 using ImGuiNET;
 using OriNoco.Rhine;
-using Raylib_CSharp;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Interact;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
+using SharpFileDialog;
 
 namespace OriNoco.Charter
 {
@@ -75,17 +74,36 @@ namespace OriNoco.Charter
             if (ImGui.BeginMenu("File"))
             {
                 if (ImGui.MenuItem("New"))
+                {
+                    lane = new RhythmLane();
+                    notes.Clear();
 
+                    Program.Rhine.time = 0f;
+                    Program.Rhine.notes.Clear();
+                    Program.Rhine.UpdatePlayerPosition();
+                    Program.Rhine.lane = new PredictableLane();
+
+                    PostScrollUpdate();
+
+                    Window.SetTitle("OriNoco - None");
+                }
 
                 if (ImGui.MenuItem("Open"))
                 {
+                    if (NativeFileDialog.PickFolder(null, out var path))
+                    {
+                        Console.WriteLine("Oh shit, you actually picked a folder");
+                    }
                 }
+
                 if (ImGui.MenuItem("Save"))
                 {
                 }
+
                 if (ImGui.MenuItem("Save As"))
                 {
                 }
+
                 if (ImGui.MenuItem("Exit"))
                 {
                     Window.Close();
@@ -104,7 +122,7 @@ namespace OriNoco.Charter
 
             if (ImGui.BeginMenu("Window"))
             {
-                ImGui.Selectable("Properties", ref Program.RhineScene.showWindow);
+                ImGui.Selectable("Properties", ref Program.Rhine.showWindow);
                 ImGui.EndMenu();
             }
 
@@ -186,7 +204,7 @@ namespace OriNoco.Charter
             notes.Add(note);
 
             if (refresh)
-                Program.RhineScene.UpdateNote(time);
+                Program.Rhine.UpdateNote(time);
             return note;
         }
 
@@ -239,7 +257,7 @@ namespace OriNoco.Charter
             notes.Remove(note);
 
             if (refresh)
-                Program.RhineScene.UpdateNote(time);
+                Program.Rhine.UpdateNote(time);
         }
 
         public List<CharterNote> FindNotesAtTime(float time) =>
@@ -300,7 +318,7 @@ namespace OriNoco.Charter
         {
             yOffset = Program.Time * yScale;
             UpdateNotePositions();
-            Program.RhineScene.UpdatePlayerPosition();
+            Program.Rhine.UpdatePlayerPosition();
         }
 
         public override void Draw()

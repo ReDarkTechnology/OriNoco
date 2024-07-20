@@ -26,7 +26,7 @@ namespace OriNoco.Rhine
         private List<RhineTrail> trails = [];
         private List<RhineTrail> deleteTrailQueue = [];
 
-        public List<RhineNote> notes => Program.RhineScene.notes;
+        public List<RhineNote> notes => Program.Rhine.notes;
         #endregion
 
         #region Main Methods
@@ -156,7 +156,7 @@ namespace OriNoco.Rhine
                         Input.IsKeyPressed(Settings.Data.GameplayAltUpKey))
                     {
                         CreateTail();
-                        Program.RhineScene.music.PlayStream();
+                        Program.Rhine.music.PlayStream();
                         IsStarted = true;
                     }
                 }
@@ -173,7 +173,7 @@ namespace OriNoco.Rhine
                     {
                         type = NoteType.Tap,
                         direction = direction,
-                        time = Program.RhineScene.time
+                        time = Program.Rhine.time
                     };
                     note.AdjustDrawables(drawable.Position, 0.2f);
                     notes.Add(note);

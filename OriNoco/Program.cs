@@ -1,6 +1,5 @@
 ﻿using OriNoco.Charter;
 using OriNoco.Rhine;
-using OriNoco.Tests;
 using System;
 using System.Numerics;
 
@@ -8,13 +7,13 @@ namespace OriNoco
 {
     public static class Program
     {
-        public static RhineScene RhineScene = new RhineScene();
-        public static CharterScene CharterScene = new CharterScene();
+        public static RhineScene Rhine = new RhineScene();
+        public static CharterScene Charter = new CharterScene();
 
         public static float Time 
         {
-            get => RhineScene.time;
-            set => RhineScene.time = value;
+            get => Rhine.time;
+            set => Rhine.time = value;
         }
 
         [STAThread]
@@ -22,11 +21,12 @@ namespace OriNoco
         {
             Settings.Load();
 
-            Game.RegisterScene(RhineScene);
-            Game.RegisterScene(CharterScene);
+            Game.RegisterScene(Rhine);
+            Game.RegisterScene(Charter);
             Game.Start();
         }
 
+        #region Extension Methods
         public static Vector2 InvertY(this Vector2 value)
         {
             value.Y = -value.Y;
@@ -50,5 +50,6 @@ namespace OriNoco
         {
             return Convert.ToInt32(val);
         }
+        #endregion
     }
 }

@@ -30,7 +30,7 @@ namespace OriNoco
         {
             Logger.SetTraceLogLevel(TraceLogLevel.Warning);
             Raylib.SetConfigFlags(ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
-            Window.Init(_WindowSize.X, _WindowSize.Y, "OriNoco");
+            Window.Init(_WindowSize.X, _WindowSize.Y, "OriNoco - None");
             {
                 Window.SetMinSize(640, 360);
                 Window.SetIcon(Image.LoadFromMemory(".png", BuiltResources.OriNoco));
