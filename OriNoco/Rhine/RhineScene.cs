@@ -11,33 +11,36 @@ using Raylib_CSharp.Colors;
 using Raylib_CSharp.Fonts;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
+using SharpFileDialog;
 using Point = System.Drawing.Point;
+using OriNoco.Data;
 
 namespace OriNoco.Rhine
 {
     public class RhineScene : Scene
     {
-        public bool showWindow = true;
+        #region Variables
+        public bool showProperties = true;
         private Color backgroundColor = Color.Black;
-        private RhinePlayer player;
-        private Viewport2D viewport;
-        private TextureDrawable noteDrawable;
 
-        public PredictableLane lane = new PredictableLane();
+        private readonly RhinePlayer player;
+        private readonly Viewport2D viewport;
+        private readonly TextureDrawable noteDrawable;
+
+        public PredictableLane lane = new();
 
         public Music music;
         public float fontSize = 20;
         public float followSpeed = 1.5f;
-        public float time = 0f;
-        public float bpm = 120f;
 
-        public Point viewportOffset = new Point(0, 20);
-        public Point viewportScaleOffset = new Point(300, 220);
+        public Point viewportOffset = new(0, 20);
+        public Point viewportScaleOffset = new(300, 220);
 
         public Font mainFont;
 
-        public List<RhineNote> notes = new List<RhineNote>();
-
+        public List<RhineNote> notes = [];
+        #endregion
+        #region Initialization
         public RhineScene()
         {
             viewport = new Viewport2D(this);
@@ -49,7 +52,8 @@ namespace OriNoco.Rhine
             };
             noteDrawable = new TextureDrawable(default);
         }
-
+        #endregion
+        #region Overrides
         public override void Init()
         {
             player.LoadTexture();
@@ -61,20 +65,20 @@ namespace OriNoco.Rhine
 
         public override void Update()
         {
-            if (showWindow)
+            if (showProperties)
             {
-                viewportOffset = new Point(0, 20);
-                viewportScaleOffset = new Point(300, 220);
+                viewportOffset = new(0, 20);
+                viewportScaleOffset = new(300, 220);
             }
             else
             {
-                viewportOffset = new Point(0, 20);
-                viewportScaleOffset = new Point(300, 20);
+                viewportOffset = new(0, 20);
+                viewportScaleOffset = new(300, 20);
             }
 
             if (player.IsStarted)
             {
-                time += Time.GetFrameTime();
+                Core.Time += Time.GetFrameTime();
                 music.UpdateStream();
             }
             player.Update();
@@ -91,7 +95,7 @@ namespace OriNoco.Rhine
             Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 5, Color.White);
             Graphics.DrawTextEx(mainFont, $"FPS: {Time.GetFPS()}", new Vector2(10, 50), fontSize, 5, Color.White);
             Graphics.DrawTextEx(mainFont, $"Notes: {notes.Count}", new Vector2(10, 70), fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"Time: {time}", new Vector2(10, 110), fontSize, 5, Color.White);
+            Graphics.DrawTextEx(mainFont, $"Time: {Core.Time}", new Vector2(10, 110), fontSize, 5, Color.White);
 
             viewport.Begin();
 
@@ -103,10 +107,21 @@ namespace OriNoco.Rhine
             Graphics.EndScissorMode();
         }
 
+        public override Vector2 GetViewportSize()
+        {
+            var size = base.GetViewportSize();
+            size.X -= viewportScaleOffset.X;
+            size.Y -= viewportScaleOffset.Y;
+            return size;
+        }
+
+        public override Vector2 GetViewportOffset() => new Vector2(viewportOffset.X, viewportOffset.Y);
+        #endregion
+        #region Helpers and Methods
         public static void DrawPoint(Vector2 point, float thickness, Color color)
         {
-            Graphics.DrawLineEx(new Vector2(0, point.Y), new Vector2(Window.GetScreenWidth(), point.Y), thickness, color);
-            Graphics.DrawLineEx(new Vector2(point.X, 0), new Vector2(point.X, Window.GetScreenHeight()), thickness, color);
+            Graphics.DrawLineEx(new(0, point.Y), new(Window.GetScreenWidth(), point.Y), thickness, color);
+            Graphics.DrawLineEx(new(point.X, 0), new(point.X, Window.GetScreenHeight()), thickness, color);
         }
 
         public void UpdatePlayerPosition()
@@ -118,10 +133,9 @@ namespace OriNoco.Rhine
             {
                 for (int i = 0; i < notes.Count; i++)
                 {
-                    if (time < notes[i].time)
+                    if (Core.Time < notes[i].time)
                     {
-                        var value = lane.GetValueFromTime(time);
-                        Console.WriteLine($"{time}: {value}");
+                        var value = lane.GetValueFromTime(Core.Time);
                         position += direction.ToDirection() * (value - previousValue);
                         goto skip;
                     }
@@ -134,20 +148,57 @@ namespace OriNoco.Rhine
                     }
                 }
 
-                var lastValue = lane.GetValueFromTime(time);
+                var lastValue = lane.GetValueFromTime(Core.Time);
                 position += direction.ToDirection() * (lastValue - previousValue);
             }
             else
             {
-                position = Direction.Up.ToDirection() * lane.GetValueFromTime(time);
+                position = Direction.Up.ToDirection() * lane.GetValueFromTime(Core.Time);
             }
 
             skip:
             player.drawable.Position = position;
 
-            int index = lane.GetChangeIndexFromTime(time);
+            int index = lane.GetChangeIndexFromTime(Core.Time);
             player.speed = index >= 0 ? lane.changes[index].rate : lane.initialRate;
         }
+        #endregion
+        #region Notes
+        public RhineNote CreateNote(NoteType type, Direction direction, float time, Vector2 position)
+        {
+            var note = new RhineNote
+            {
+                type = type,
+                direction = direction,
+                time = time
+            };
+
+            note.AdjustDrawables(position, 0.2f);
+            notes.Add(note);
+            notes.Sort((a, b) => a.time.CompareTo(b.time));
+
+            UpdatePlayerPosition();
+            return note;
+        }
+
+        public void DeleteNote(RhineNote note)
+        {
+            notes.Remove(note);
+            notes.Sort((a, b) => a.time.CompareTo(b.time));
+        }
+
+        public void DeleteNote(float time)
+        {
+            var note = GetNoteAtTime(time);
+            if (note != null)
+            {
+                notes.Remove(note);
+                notes.Sort((a, b) => a.time.CompareTo(b.time));
+            }
+        }
+
+        public RhineNote? GetNoteAtTime(float time) =>
+            notes.Find(val => MathF.Abs(val.time - time) < float.Epsilon);
 
         public void UpdateNote(float time)
         {
@@ -196,150 +247,126 @@ namespace OriNoco.Rhine
             }
         }
 
-        public RhineNote CreateNote(NoteType type, Direction direction, float time, Vector2 position)
-        {
-            var note = new RhineNote
-            {
-                type = type,
-                direction = direction,
-                time = time
-            };
-            note.AdjustDrawables(position, 0.2f);
-            notes.Add(note);
-            notes.Sort((a, b) => a.time.CompareTo(b.time));
-
-            UpdatePlayerPosition();
-            return note;
-        }
-
-        public void DeleteNote(RhineNote note)
-        {
-            notes.Remove(note);
-            notes.Sort((a, b) => a.time.CompareTo(b.time));
-        }
-
-        public void DeleteNote(float time)
-        {
-            var note = GetNoteAtTime(time);
-            if (note != null)
-            {
-                notes.Remove(note);
-                notes.Sort((a, b) => a.time.CompareTo(b.time));
-            }
-        }
-
-        public RhineNote? GetNoteAtTime(float time) =>
-            notes.Find(val => MathF.Abs(val.time - time) < float.Epsilon);
-
+        #endregion
+        #region GUI
         public override void DrawGUI()
         {
-            if (showWindow)
+            DrawMenuBar();
+            DrawProperties();
+        }
+
+        public void DrawMenuBar()
+        {
+            ImGui.BeginMainMenuBar();
             {
-                var size = GetViewportSize();
-                GUI.SetNextWindowPos(new Vector2(0, size.Y + 20));
-                GUI.SetNextWindowSize(new Vector2(size.X, 200));
-                GUI.BeginWindow("Properties", ref showWindow, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+                if (ImGui.BeginMenu("File"))
                 {
-                    if (ImGui.BeginTable("Settings", 2, ImGuiTableFlags.Borders))
+                    if (ImGui.MenuItem("New"))
                     {
-                        ImGui.TableNextRow();
-                        ImGui.TableSetColumnIndex(0);
+                        Program.Charter.lane = new RhythmLane();
+                        Program.Charter.notes.Clear();
 
-                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Player");
-                        GUI.Text($"Position: {player.drawable.Position}");
-                        GUI.Text($"Direction: {player.direction}");
-                        player.mode = GUI.ComboBox("Create Mode", player.mode);
-                        player.speed = GUI.Slider("Speed", player.speed, 1f, 20f);
+                        Core.Time = 0f;
+                        notes.Clear();
+                        UpdatePlayerPosition();
+                        lane = new PredictableLane();
 
+                        Program.Charter.PostScrollUpdate();
 
-                        ImGui.TableSetColumnIndex(1);
-                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Camera");
-                        GUI.Text($"Position: {viewport.Position}");
-                        viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
-                        followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
+                        Window.SetTitle("OriNoco - None");
+                    }
 
-                        ImGui.TableNextRow();
-
-                        ImGui.TableSetColumnIndex(0);
-                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "UI");
-                        fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
-                        GUI.Text($"Hovering GUI: " + GUI.IsOverAnyElement);
-
-                        ImGui.TableSetColumnIndex(1);
-                        GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
-
-                        if (GUI.Button("Save"))
+                    if (File.Exists("notes.json"))
+                    {
+                        if (ImGui.MenuItem("Load"))
                         {
-                            var serializables = new List<NoteSerializable>();
-                            foreach (var note in notes)
-                                serializables.Add(new NoteSerializable(note));
-                            File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
-                        }
-
-                        if (File.Exists("notes.json"))
-                        {
-                            GUI.SameLine();
-                            if (GUI.Button("Load"))
+                            var serializables = MainSerializer.Deserialize<List<NoteData>>(File.ReadAllText("notes.json"));
+                            if (serializables != null)
                             {
-                                var serializables = MainSerializer.Deserialize<List<NoteSerializable>>(File.ReadAllText("notes.json"));
-                                if (serializables != null)
+                                notes.Clear();
+                                foreach (var serializable in serializables)
                                 {
-                                    notes.Clear();
-                                    foreach (var serializable in serializables)
-                                    {
-                                        CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
-                                        Program.Charter.EvaulateDirectionToCreateNote(serializable.Direction, serializable.Time);
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Failed to load notes");
+                                    CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
+                                    Program.Charter.EvaulateDirectionToCreateNote(serializable.Direction, serializable.Time);
                                 }
                             }
+                            else
+                            {
+                                Console.WriteLine("Failed to load notes");
+                            }
                         }
-
-                        ImGui.EndTable();
                     }
+
+                    if (ImGui.MenuItem("Save"))
+                    {
+                        var serializables = new List<NoteData>();
+                        foreach (var note in notes)
+                            serializables.Add(new NoteData(note));
+                        File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
+                    }
+
+                    if (ImGui.MenuItem("Exit"))
+                    {
+                        Window.Close();
+                    }
+
+                    ImGui.EndMenu();
                 }
-                GUI.EndWindow();
+
+                if (ImGui.BeginMenu("Edit"))
+                {
+                    if (ImGui.MenuItem("Refresh All Notes"))
+                    {
+                    }
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Window"))
+                {
+                    ImGui.MenuItem("Properties", string.Empty, ref showProperties);
+                    ImGui.EndMenu();
+                }
             }
+            ImGui.EndMainMenuBar();
         }
 
-        public override void Shutdown()
+        public void DrawProperties()
         {
-            notes.Clear();
-        }
+            if (!showProperties) return;
 
-        public override Vector2 GetViewportSize()
-        {
-            var size = base.GetViewportSize();
-            size.X -= viewportScaleOffset.X;
-            size.Y -= viewportScaleOffset.Y;
-            return size;
-        }
-
-        public override Vector2 GetViewportOffset() => new Vector2(viewportOffset.X, viewportOffset.Y);
-
-        [Serializable]
-        public class NoteSerializable
-        {
-            [JsonPropertyName("position")]
-            public Vector2 Position { get; set; }
-            [JsonPropertyName("time")]
-            public float Time { get; set; }
-            [JsonPropertyName("direction")]
-            public Direction Direction { get; set; }
-            [JsonPropertyName("type")]
-            public NoteType Type { get; set; }
-
-            public NoteSerializable() { }
-            public NoteSerializable(RhineNote note)
+            var size = GetViewportSize();
+            GUI.SetNextWindowPos(new Vector2(0, size.Y + 20));
+            GUI.SetNextWindowSize(new Vector2(size.X, 200));
+            GUI.BeginWindow("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
             {
-                Position = note.note.Position;
-                Time = note.time;
-                Direction = note.direction;
-                Type = note.type;
+                if (ImGui.BeginTable("Settings", 3, ImGuiTableFlags.Borders))
+                {
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+
+                    GUI.TextColored(new(0f, 1f, 0f, 1f), "Player");
+                    GUI.Text($"Position: {player.drawable.Position}");
+                    GUI.Text($"Direction: {player.direction}");
+                    player.mode = GUI.ComboBox("Create Mode", player.mode);
+                    player.speed = GUI.Slider("Speed", player.speed, 1f, 20f);
+
+
+                    ImGui.TableSetColumnIndex(1);
+                    GUI.TextColored(new(0f, 1f, 0f, 1f), "Camera");
+                    GUI.Text($"Position: {viewport.Position}");
+                    viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
+                    followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
+
+                    ImGui.TableSetColumnIndex(2);
+                    GUI.TextColored(new(0f, 1f, 0f, 1f), "UI");
+                    fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
+                    GUI.Text($"Hovering GUI: " + GUI.IsOverAnyElement);
+
+                    ImGui.EndTable();
+                }
             }
+            GUI.EndWindow();
         }
+        #endregion
     }
 }

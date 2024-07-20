@@ -173,7 +173,7 @@ namespace OriNoco.Rhine
                     {
                         type = NoteType.Tap,
                         direction = direction,
-                        time = Program.Rhine.time
+                        time = Core.Time
                     };
                     note.AdjustDrawables(drawable.Position, 0.2f);
                     notes.Add(note);

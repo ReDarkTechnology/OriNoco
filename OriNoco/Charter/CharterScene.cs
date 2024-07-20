@@ -26,6 +26,8 @@ namespace OriNoco.Charter
         public TextureDrawable upActive = new (default);
 
         public RhythmLane lane = new();
+        public float bpm = 120f;
+
         public TextureDrawable rightActive = new(default);
 
         public float xSpacing = 32f;
@@ -70,63 +72,6 @@ namespace OriNoco.Charter
 
         public override void DrawGUI()
         {
-            ImGui.BeginMainMenuBar();
-            if (ImGui.BeginMenu("File"))
-            {
-                if (ImGui.MenuItem("New"))
-                {
-                    lane = new RhythmLane();
-                    notes.Clear();
-
-                    Program.Rhine.time = 0f;
-                    Program.Rhine.notes.Clear();
-                    Program.Rhine.UpdatePlayerPosition();
-                    Program.Rhine.lane = new PredictableLane();
-
-                    PostScrollUpdate();
-
-                    Window.SetTitle("OriNoco - None");
-                }
-
-                if (ImGui.MenuItem("Open"))
-                {
-                    if (NativeFileDialog.PickFolder(null, out var path))
-                    {
-                        Console.WriteLine("Oh shit, you actually picked a folder");
-                    }
-                }
-
-                if (ImGui.MenuItem("Save"))
-                {
-                }
-
-                if (ImGui.MenuItem("Save As"))
-                {
-                }
-
-                if (ImGui.MenuItem("Exit"))
-                {
-                    Window.Close();
-                }
-
-                ImGui.EndMenu();
-            }
-
-            if (ImGui.BeginMenu("Edit"))
-            {
-                if (ImGui.MenuItem("Refresh"))
-                {
-                }
-                ImGui.EndMenu();
-            }
-
-            if (ImGui.BeginMenu("Window"))
-            {
-                ImGui.Selectable("Properties", ref Program.Rhine.showWindow);
-                ImGui.EndMenu();
-            }
-
-            ImGui.EndMainMenuBar();
         }
 
         public void ReadInputs()
@@ -143,7 +88,7 @@ namespace OriNoco.Charter
 
         public void OnActionPressed(Direction direction)
         {
-            var existingNotes = FindNotesAtTime(Program.Time);
+            var existingNotes = FindNotesAtTime(Core.Time);
             if (existingNotes.Count > 0)
             {
                 var sameNote = existingNotes.Find(val => val.direction == direction);
@@ -167,25 +112,25 @@ namespace OriNoco.Charter
                                 if (existingNotes.Exists(val => val.direction == Direction.Up))
                                     Console.WriteLine("Note in the opposite direction is not allowed!");
                                 else
-                                    CreateNote(direction, Program.Time);
+                                    CreateNote(direction, Core.Time);
                                 break;
                             case Direction.Up:
                                 if (existingNotes.Exists(val => val.direction == Direction.Down))
                                     Console.WriteLine("Note in the opposite direction is not allowed!");
                                 else
-                                    CreateNote(direction, Program.Time);
+                                    CreateNote(direction, Core.Time);
                                 break;
                             case Direction.Left:
                                 if (existingNotes.Exists(val => val.direction == Direction.Right))
                                     Console.WriteLine("Note in the opposite direction is not allowed!");
                                 else
-                                    CreateNote(direction, Program.Time);
+                                    CreateNote(direction, Core.Time);
                                 break;
                             case Direction.Right:
                                 if (existingNotes.Exists(val => val.direction == Direction.Left))
                                     Console.WriteLine("Note in the opposite direction is not allowed!");
                                 else
-                                    CreateNote(direction, Program.Time);
+                                    CreateNote(direction, Core.Time);
                                 break;
                         }
                     }
@@ -193,7 +138,7 @@ namespace OriNoco.Charter
             }
             else
             {
-                CreateNote(direction, Program.Time);
+                CreateNote(direction, Core.Time);
             }
         }
 
@@ -303,12 +248,12 @@ namespace OriNoco.Charter
             {
                 if (mouseWheel > 0)
                 {
-                    Program.Time = lane.GetPreviousTime(Program.Time, division);
+                    Core.Time = lane.GetPreviousTime(Core.Time, division);
                     PostScrollUpdate();
                 }
                 else if (mouseWheel < 0)
                 {
-                    Program.Time = lane.GetNextTime(Program.Time, division);
+                    Core.Time = lane.GetNextTime(Core.Time, division);
                     PostScrollUpdate();
                 }
             }
@@ -316,7 +261,7 @@ namespace OriNoco.Charter
 
         public void PostScrollUpdate()
         {
-            yOffset = Program.Time * yScale;
+            yOffset = Core.Time * yScale;
             UpdateNotePositions();
             Program.Rhine.UpdatePlayerPosition();
         }
@@ -338,7 +283,7 @@ namespace OriNoco.Charter
             Graphics.DrawLineEx(new Vector2(screenCoord2.X, 0), new Vector2(screenCoord2.X, Window.GetScreenHeight() - YPadding), 1f, Color.Red);
             Graphics.DrawLineEx(new Vector2(screenCoord3.X, 0), new Vector2(screenCoord3.X, Window.GetScreenHeight() - YPadding), 1f, Color.Red);
 
-            float time = lane.GetNextTime(Program.Time, division);
+            float time = lane.GetNextTime(Core.Time, division);
             for (int i = 0; i < 24; i++)
             {
                 Graphics.DrawLineEx(new Vector2(screenCoord.X, GetScreenY(time * yScale)), new Vector2(screenCoord3.X, GetScreenY(time * yScale)), 1f, lane.IsAPartOfRate(time) ? Color.Blue : Color.Green);
