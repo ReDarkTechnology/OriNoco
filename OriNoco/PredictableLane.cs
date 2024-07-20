@@ -1,6 +1,7 @@
 ﻿using Raylib_CSharp;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace OriNoco
 {
@@ -68,50 +69,66 @@ namespace OriNoco
             return changes.Count - 1;
         }
 
-        public virtual float AdjustTimeToRate(float time)
+        public virtual float AdjustTimeToRate(float time, float division = 1f)
         {
             int index = GetChangeIndexFromTime(time);
             if (index < 0)
             {
-                float timePerRate = 1f / initialRate;
+                float timePerRate = 1f / (initialRate * division);
                 return (float)Math.Floor(time / timePerRate) * timePerRate;
             }
             else
             {
                 float offset = changes[index].time - time;
-                float timePerRate = 1f / changes[index].rate;
+                float timePerRate = 1f / (changes[index].rate * division);
                 return (float)Math.Floor(offset / timePerRate) * timePerRate + changes[index].time;
             }
         }
 
-        public virtual void AdjustTimeToRate(float time, out float newTime, out int index)
+        public virtual bool IsAPartOfRate(float time, float division = 1f)
+        {
+            int index = GetChangeIndexFromTime(time);
+            if (index < 0)
+            {
+                float timePerRate = 1f / (initialRate * division);
+                return time % timePerRate < float.Epsilon;
+            }
+            else
+            {
+                float offset = changes[index].time - time;
+                float timePerRate = 1f / (changes[index].rate * division);
+                return offset % timePerRate < float.Epsilon;
+            }
+        }
+
+        public virtual void AdjustTimeToRate(float time, out float newTime, out int index, float division = 1f)
         {
             index = GetChangeIndexFromTime(time);
             if (index < 0)
             {
-                float timePerRate = 1f / initialRate;
+                float timePerRate = 1f / (initialRate * division);
                 newTime = (float)Math.Floor(time / timePerRate) * timePerRate;
             }
             else
             {
                 float offset = changes[index].time - time;
-                float timePerRate = 1f / changes[index].rate;
+                float timePerRate = 1f / (changes[index].rate * division);
                 newTime = (float)Math.Floor(offset / timePerRate) * timePerRate + changes[index].time;
             }
         }
 
-        public virtual float GetNextTime(float time)
+        public virtual float GetNextTime(float time, float division = 1f)
         {
             float result = 0;
-            AdjustTimeToRate(time, out float nt, out int index);
+            AdjustTimeToRate(time, out float nt, out int index, division);
             if (index < 0)
             {
-                float timePerRate = 1f / initialRate;
+                float timePerRate = 1f / (initialRate * division);
                 result = nt + timePerRate;
             }
             else
             {
-                float timePerRate = 1f / changes[index].rate;
+                float timePerRate = 1f / (changes[index].rate * division);
                 result = nt + timePerRate;
             }
 
@@ -124,18 +141,18 @@ namespace OriNoco
             return result;
         }
 
-        public virtual float GetPreviousTime(float time)
+        public virtual float GetPreviousTime(float time, float division = 1f)
         {
             float result = 0;
-            AdjustTimeToRate(time, out float nt, out int index);
+            AdjustTimeToRate(time, out float nt, out int index, division);
             if (index < 0)
             {
-                float timePerRate = 1f / initialRate;
+                float timePerRate = 1f / (initialRate * division);
                 result = nt - timePerRate;
             }
             else
             {
-                float timePerRate = 1f / changes[index].rate;
+                float timePerRate = 1f / (changes[index].rate * division);
                 result = nt - timePerRate;
             }
 

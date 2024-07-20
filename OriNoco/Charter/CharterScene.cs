@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection.Metadata;
+using System.Runtime.Serialization;
 using ImGuiNET;
 using OriNoco.Rhine;
 using Raylib_CSharp;
@@ -29,8 +30,9 @@ namespace OriNoco.Charter
         public TextureDrawable rightActive = new(default);
 
         public float xSpacing = 32f;
-        public float yScale = 75f;
+        public float yScale = 125f;
         public float yOffset = 0;
+        public float division = 4f;
         private float mouseWheel;
 
         public ColorF judgementNoteColor = new ColorF(0.8f, 0.8f, 0.8f, 1f);
@@ -188,6 +190,43 @@ namespace OriNoco.Charter
             return note;
         }
 
+        public CharterNote[] EvaulateDirectionToCreateNote(Direction direction, float time, bool refresh = false)
+        {
+            switch (direction)
+            {
+                case Direction.Left:
+                    var n1 = CreateNote(Direction.Left, time, false);
+                    return [n1];
+                case Direction.Down:
+                    n1 = CreateNote(Direction.Down, time, false);
+                    return [n1];
+                case Direction.Up:
+                    n1 = CreateNote(Direction.Up, time, false);
+                    return [n1];
+                case Direction.Right:
+                    n1 = CreateNote(Direction.Right, time, false);
+                    return [n1];
+                case Direction.LeftUp:
+                    n1 = CreateNote(Direction.Left, time, false);
+                    var n2 = CreateNote(Direction.Up, time, false);
+                    return [n1, n2];
+                case Direction.LeftDown:
+                    n1 = CreateNote(Direction.Left, time, false);
+                    n2 = CreateNote(Direction.Down, time, false);
+                    return [n1, n2];
+                case Direction.RightUp:
+                    n1 = CreateNote(Direction.Right, time, false);
+                    n2 = CreateNote(Direction.Up, time, false);
+                    return [n1, n2];
+                case Direction.RightDown:
+                    n1 = CreateNote(Direction.Right, time, false);
+                    n2 = CreateNote(Direction.Down, time, false);
+                    return [n1, n2];
+            }
+
+            return [];
+        }
+
         public void UpdateNotePositions()
         {
             foreach (var note in notes)
@@ -246,12 +285,12 @@ namespace OriNoco.Charter
             {
                 if (mouseWheel > 0)
                 {
-                    Program.Time = lane.GetPreviousTime(Program.Time);
+                    Program.Time = lane.GetPreviousTime(Program.Time, division);
                     PostScrollUpdate();
                 }
                 else if (mouseWheel < 0)
                 {
-                    Program.Time = lane.GetNextTime(Program.Time);
+                    Program.Time = lane.GetNextTime(Program.Time, division);
                     PostScrollUpdate();
                 }
             }
@@ -281,11 +320,11 @@ namespace OriNoco.Charter
             Graphics.DrawLineEx(new Vector2(screenCoord2.X, 0), new Vector2(screenCoord2.X, Window.GetScreenHeight() - YPadding), 1f, Color.Red);
             Graphics.DrawLineEx(new Vector2(screenCoord3.X, 0), new Vector2(screenCoord3.X, Window.GetScreenHeight() - YPadding), 1f, Color.Red);
 
-            float time = lane.GetNextTime(Program.Time);
-            for (int i = 0; i < 12; i++)
+            float time = lane.GetNextTime(Program.Time, division);
+            for (int i = 0; i < 24; i++)
             {
-                Graphics.DrawLineEx(new Vector2(screenCoord.X, GetScreenY(time * yScale)), new Vector2(screenCoord3.X, GetScreenY(time * yScale)), 1f, Color.Green);
-                time = lane.GetNextTime(time);
+                Graphics.DrawLineEx(new Vector2(screenCoord.X, GetScreenY(time * yScale)), new Vector2(screenCoord3.X, GetScreenY(time * yScale)), 1f, lane.IsAPartOfRate(time) ? Color.Blue : Color.Green);
+                time = lane.GetNextTime(time, division);
             }
 
             leftActive.Draw(screenCoord, judgementNoteColor);

@@ -217,14 +217,12 @@ namespace OriNoco.Rhine
                         viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
                         followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
 
-
                         ImGui.TableNextRow();
 
                         ImGui.TableSetColumnIndex(0);
                         GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "UI");
                         fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
                         GUI.Text($"Hovering GUI: " + GUI.IsOverAnyElement);
-
 
                         ImGui.TableSetColumnIndex(1);
                         GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
@@ -236,7 +234,6 @@ namespace OriNoco.Rhine
                                 serializables.Add(new NoteSerializable(note));
                             File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
                         }
-
 
                         if (File.Exists("notes.json"))
                         {
@@ -250,37 +247,7 @@ namespace OriNoco.Rhine
                                     foreach (var serializable in serializables)
                                     {
                                         CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
-                                        switch (serializable.Direction)
-                                        {
-                                            case Direction.Left:
-                                                Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
-                                                break;
-                                            case Direction.Down:
-                                                Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
-                                                break;
-                                            case Direction.Up:
-                                                Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
-                                                break;
-                                            case Direction.Right:
-                                                Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
-                                                break;
-                                            case Direction.LeftUp:
-                                                Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
-                                                Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
-                                                break;
-                                            case Direction.LeftDown:
-                                                Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
-                                                Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
-                                                break;
-                                            case Direction.RightUp:
-                                                Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
-                                                Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
-                                                break;
-                                            case Direction.RightDown:
-                                                Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
-                                                Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
-                                                break;
-                                        }
+                                        Program.CharterScene.EvaulateDirectionToCreateNote(serializable.Direction, serializable.Time);
                                     }
                                 }
                                 else
