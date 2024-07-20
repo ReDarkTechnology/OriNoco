@@ -29,6 +29,7 @@ namespace OriNoco.Rhine
         public void AdjustDrawables(Vector2 position, float scale)
         {
             note.Position = position;
+            note.Rotation = 0f;
             note.Scale = new Vector2(scale, scale);
 
             arrow.Position = position;

@@ -130,7 +130,6 @@ namespace OriNoco.Rhine
 
             skip:
             player.drawable.Position = position;
-            player.drawable.Rotation = direction.ToRotation();
 
             int index = lane.GetChangeIndexFromTime(time);
             player.speed = index >= 0 ? lane.changes[index].rate : lane.initialRate;
@@ -143,20 +142,47 @@ namespace OriNoco.Rhine
 
             if (note != null)
             {
+                int index = notes.IndexOf(note);
                 if (direction == Direction.None)
                     DeleteNote(note);
                 else
                     note.UpdateDirection(direction);
+
+                UpdateNotesFromIndex(index - 1);
+                UpdatePlayerPosition();
             }
             else if (direction != Direction.None)
             {
-                CreateNote(NoteType.Tap, direction, time, player.drawable.Position);
+                note = CreateNote(NoteType.Tap, direction, time, player.drawable.Position);
+                UpdateNotesFromIndex(notes.IndexOf(note));
             }
-
-            UpdatePlayerPosition();
         }
 
-        public void CreateNote(NoteType type, Direction direction, float time, Vector2 position)
+        public void UpdateNotesFromIndex(int index)
+        {
+            if (index < 0) index = 0;
+
+            if (notes.Count > 0)
+            {
+                var note = notes[index];
+
+                Vector2 position = note.note.Position;
+                float previousValue = lane.GetValueFromTime(note.time);
+                Direction direction = note.direction;
+
+                for (int i = index + 1; i < notes.Count; i++)
+                {
+                    note = notes[i];
+                    var value = lane.GetValueFromTime(note.time);
+                    position += direction.ToDirection() * (value - previousValue);
+                    previousValue = value;
+                    direction = note.direction;
+                    note.AdjustDrawables(position, 0.2f);
+                }
+            }
+        }
+
+        public RhineNote CreateNote(NoteType type, Direction direction, float time, Vector2 position)
         {
             var note = new RhineNote
             {
@@ -169,6 +195,7 @@ namespace OriNoco.Rhine
             notes.Sort((a, b) => a.time.CompareTo(b.time));
 
             UpdatePlayerPosition();
+            return note;
         }
 
         public void DeleteNote(RhineNote note)

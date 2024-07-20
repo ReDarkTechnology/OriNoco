@@ -32,7 +32,7 @@ namespace OriNoco.Charter
         public float xSpacing = 32f;
         public float yScale = 125f;
         public float yOffset = 0;
-        public float division = 4f;
+        public float division = 2f;
         private float mouseWheel;
 
         public ColorF judgementNoteColor = new ColorF(0.8f, 0.8f, 0.8f, 1f);
