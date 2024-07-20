@@ -36,6 +36,12 @@ namespace OriNoco.Rhine
             arrow.Scale = new Vector2(scale, scale);
         }
 
+        public void UpdateDirection(Direction direction)
+        {
+            this.direction = direction;
+            arrow.Rotation = direction.ToRotation();
+        }
+
         public void Update(float time)
         {
             foreach (var particle in particles)

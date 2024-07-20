@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Text.Json.Serialization;
@@ -77,14 +78,7 @@ namespace OriNoco.Rhine
             Graphics.DrawTextEx(mainFont, $"Music: N² - NULL APOPHENIA", new Vector2(10, 70), fontSize, 5, Color.White);
             Graphics.DrawTextEx(mainFont, $"Time: {time}", new Vector2(10, 90), fontSize, 5, Color.White);
 
-            float distance = 1f;
-
             viewport.Begin();
-
-            for (int i = 0; i < 12; i++)
-            {
-                noteDrawable.Draw(player.drawable.Position + (distance * player.direction.ToDirection() * i), new ColorF(1f, 1f, 1f, (150 - (i * 8)) / 255f));
-            }
 
             foreach (var note in notes)
                 note.Draw();
@@ -99,6 +93,101 @@ namespace OriNoco.Rhine
             Graphics.DrawLineEx(new Vector2(0, point.Y), new Vector2(Window.GetScreenWidth(), point.Y), thickness, color);
             Graphics.DrawLineEx(new Vector2(point.X, 0), new Vector2(point.X, Window.GetScreenHeight()), thickness, color);
         }
+
+        public void UpdatePlayerPosition()
+        {
+            Vector2 position = Vector2.Zero;
+            var direction = Direction.Up;
+            float previousValue = 0f;
+            if (notes.Count > 0)
+            {
+                for (int i = 0; i < notes.Count; i++)
+                {
+                    if (time < notes[i].time)
+                    {
+                        var value = lane.GetValueFromTime(time);
+                        Console.WriteLine($"{time}: {value}");
+                        position += direction.ToDirection() * (value - previousValue);
+                        goto skip;
+                    }
+                    else
+                    {
+                        var value = lane.GetValueFromTime(notes[i].time);
+                        position += direction.ToDirection() * (value - previousValue);
+                        previousValue = value;
+                        direction = notes[i].direction;
+                    }
+                }
+
+                var lastValue = lane.GetValueFromTime(time);
+                position += direction.ToDirection() * (lastValue - previousValue);
+            }
+            else
+            {
+                position = Direction.Up.ToDirection() * lane.GetValueFromTime(time);
+            }
+
+            skip:
+            player.drawable.Position = position;
+            player.drawable.Rotation = direction.ToRotation();
+
+            int index = lane.GetChangeIndexFromTime(time);
+            player.speed = index >= 0 ? lane.changes[index].rate : lane.initialRate;
+        }
+
+        public void UpdateNote(float time)
+        {
+            var note = GetNoteAtTime(time);
+            var direction = Program.CharterScene.GetDirectionAtTime(time);
+
+            if (note != null)
+            {
+                if (direction == Direction.None)
+                    DeleteNote(note);
+                else
+                    note.UpdateDirection(direction);
+            }
+            else if (direction != Direction.None)
+            {
+                CreateNote(NoteType.Tap, direction, time, player.drawable.Position);
+            }
+
+            UpdatePlayerPosition();
+        }
+
+        public void CreateNote(NoteType type, Direction direction, float time, Vector2 position)
+        {
+            var note = new RhineNote
+            {
+                type = type,
+                direction = direction,
+                time = time
+            };
+            note.AdjustDrawables(position, 0.2f);
+            notes.Add(note);
+            notes.Sort((a, b) => a.time.CompareTo(b.time));
+
+            UpdatePlayerPosition();
+        }
+
+        public void DeleteNote(RhineNote note)
+        {
+            notes.Remove(note);
+            notes.Sort((a, b) => a.time.CompareTo(b.time));
+        }
+
+        public void DeleteNote(float time)
+        {
+            var note = GetNoteAtTime(time);
+            if (note != null)
+            {
+                notes.Remove(note);
+                notes.Sort((a, b) => a.time.CompareTo(b.time));
+            }
+        }
+
+        public RhineNote? GetNoteAtTime(float time) =>
+            notes.Find(val => MathF.Abs(val.time - time) < float.Epsilon);
 
         public override void DrawGUI()
         {
@@ -128,12 +217,66 @@ namespace OriNoco.Rhine
                     GUI.Separator();
 
                     GUI.TextColored(new Vector4(0f, 1f, 0f, 1f), "Chart");
+
                     if (GUI.Button("Save"))
                     {
                         var serializables = new List<NoteSerializable>();
                         foreach (var note in notes)
                             serializables.Add(new NoteSerializable(note));
                         File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
+                    }
+
+
+                    if (File.Exists("notes.json"))
+                    {
+                        GUI.SameLine();
+                        if (GUI.Button("Load"))
+                        {
+                            var serializables = MainSerializer.Deserialize<List<NoteSerializable>>(File.ReadAllText("notes.json"));
+                            if (serializables != null)
+                            {
+                                notes.Clear();
+                                foreach (var serializable in serializables)
+                                {
+                                    CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
+                                    switch (serializable.Direction)
+                                    {
+                                        case Direction.Left:
+                                            Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
+                                            break;
+                                        case Direction.Down:
+                                            Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
+                                            break;
+                                        case Direction.Up:
+                                            Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
+                                            break;
+                                        case Direction.Right:
+                                            Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
+                                            break;
+                                        case Direction.LeftUp:
+                                            Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
+                                            Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
+                                            break;
+                                        case Direction.LeftDown:
+                                            Program.CharterScene.CreateNote(Direction.Left, serializable.Time, false);
+                                            Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
+                                            break;
+                                        case Direction.RightUp:
+                                            Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
+                                            Program.CharterScene.CreateNote(Direction.Up, serializable.Time, false);
+                                            break;
+                                        case Direction.RightDown:
+                                            Program.CharterScene.CreateNote(Direction.Right, serializable.Time, false);
+                                            Program.CharterScene.CreateNote(Direction.Down, serializable.Time, false);
+                                            break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Failed to load notes");
+                            }
+                        }
                     }
                 }
                 GUI.EndWindow();

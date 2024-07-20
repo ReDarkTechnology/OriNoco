@@ -27,6 +27,8 @@ namespace OriNoco
             ImGui.End();
         }
 
+        public static void SameLine() => ImGui.SameLine();
+
         public static void Text(string text) => ImGui.Text(text);
         public static void TextColored(Vector4 color, string text) => ImGui.TextColored(color, text);
 

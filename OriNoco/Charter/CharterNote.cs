@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 using OriNoco.Rhine;
 using Raylib_CSharp.Colors;
@@ -34,6 +29,7 @@ namespace OriNoco.Charter
 
         public void UpdateTexture(Direction direction)
         {
+            this.direction = direction;
             switch (direction)
             {
                 case Direction.Left:
@@ -53,7 +49,6 @@ namespace OriNoco.Charter
                     xPosition = charterScene.xSpacing * 3f;
                     break;
             }
-            this.direction = direction;
         }
 
         public void UpdatePosition() =>

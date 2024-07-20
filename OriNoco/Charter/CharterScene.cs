@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using OriNoco.Rhine;
+using Raylib_CSharp;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Interact;
 using Raylib_CSharp.Rendering;
@@ -82,7 +83,7 @@ namespace OriNoco.Charter
 
         public void OnActionPressed(Direction direction)
         {
-            var existingNotes = FindNoteAtTime(Program.Time);
+            var existingNotes = FindNotesAtTime(Program.Time);
             if (existingNotes.Count > 0)
             {
                 var sameNote = existingNotes.Find(val => val.direction == direction);
@@ -93,33 +94,40 @@ namespace OriNoco.Charter
                 }
                 else
                 {
-                    // Check if a note already exists in the opposite direction, if it does, don't create a new one.
-                    switch (direction)
+                    if (existingNotes.Count >= 2)
                     {
-                        case Direction.Down:
-                            if (existingNotes.Exists(val => val.direction == Direction.Up))
-                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
-                            else
-                                CreateNote(direction, Program.Time);
-                            break;
-                        case Direction.Up:
-                            if (existingNotes.Exists(val => val.direction == Direction.Down))
-                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
-                            else
-                                CreateNote(direction, Program.Time);
-                            break;
-                        case Direction.Left:
-                            if (existingNotes.Exists(val => val.direction == Direction.Right))
-                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
-                            else
-                                CreateNote(direction, Program.Time);
-                            break;
-                        case Direction.Right:
-                            if (existingNotes.Exists(val => val.direction == Direction.Left))
-                                Console.WriteLine("Unintended behaviour was found by the chartmaker, aborting action.");
-                            else
-                                CreateNote(direction, Program.Time);
-                            break;
+                        Console.WriteLine("3 notes at the same time is not allowed!");
+                    }
+                    else
+                    {
+                        // Check if a note already exists in the opposite direction, if it does, don't create a new one.
+                        switch (direction)
+                        {
+                            case Direction.Down:
+                                if (existingNotes.Exists(val => val.direction == Direction.Up))
+                                    Console.WriteLine("Note in the opposite direction is not allowed!");
+                                else
+                                    CreateNote(direction, Program.Time);
+                                break;
+                            case Direction.Up:
+                                if (existingNotes.Exists(val => val.direction == Direction.Down))
+                                    Console.WriteLine("Note in the opposite direction is not allowed!");
+                                else
+                                    CreateNote(direction, Program.Time);
+                                break;
+                            case Direction.Left:
+                                if (existingNotes.Exists(val => val.direction == Direction.Right))
+                                    Console.WriteLine("Note in the opposite direction is not allowed!");
+                                else
+                                    CreateNote(direction, Program.Time);
+                                break;
+                            case Direction.Right:
+                                if (existingNotes.Exists(val => val.direction == Direction.Left))
+                                    Console.WriteLine("Note in the opposite direction is not allowed!");
+                                else
+                                    CreateNote(direction, Program.Time);
+                                break;
+                        }
                     }
                 }
             }
@@ -129,11 +137,14 @@ namespace OriNoco.Charter
             }
         }
 
-        public CharterNote CreateNote(Direction direction, float time)
+        public CharterNote CreateNote(Direction direction, float time, bool refresh = true)
         {
             var note = new CharterNote(this, time, direction);
             note.UpdatePosition();
             notes.Add(note);
+
+            if (refresh)
+                Program.RhineScene.UpdateNote(time);
             return note;
         }
 
@@ -143,10 +154,49 @@ namespace OriNoco.Charter
                 note.UpdatePosition();
         }
 
-        public void RemoveNote(CharterNote note) => notes.Remove(note);
+        public void RemoveNote(CharterNote note, bool refresh = true)
+        {
+            float time = note.time;
+            notes.Remove(note);
 
-        public List<CharterNote> FindNoteAtTime(float time) =>
+            if (refresh)
+                Program.RhineScene.UpdateNote(time);
+        }
+
+        public List<CharterNote> FindNotesAtTime(float time) =>
             notes.FindAll(val => MathF.Abs(val.time - time) < float.Epsilon);
+
+        public Direction GetDirectionAtTime(float time)
+        {
+            var notes = FindNotesAtTime(time);
+            var direction = Direction.None;
+
+            if (notes.Count > 0)
+            {
+                direction = notes[0].direction;
+                if (notes.Count > 1)
+                {
+                    if (notes[1].direction == Direction.Left && direction == Direction.Up)
+                        direction = Direction.LeftUp;
+                    else if (notes[1].direction == Direction.Left && direction == Direction.Down)
+                        direction = Direction.LeftDown;
+                    else if (notes[1].direction == Direction.Right && direction == Direction.Up)
+                        direction = Direction.RightUp;
+                    else if (notes[1].direction == Direction.Right && direction == Direction.Down)
+                        direction = Direction.RightDown;
+                    else if (notes[1].direction == Direction.Up && direction == Direction.Left)
+                        direction = Direction.LeftUp;
+                    else if (notes[1].direction == Direction.Up && direction == Direction.Right)
+                        direction = Direction.RightUp;
+                    else if (notes[1].direction == Direction.Down && direction == Direction.Left)
+                        direction = Direction.LeftDown;
+                    else if (notes[1].direction == Direction.Down && direction == Direction.Right)
+                        direction = Direction.RightDown;
+                }
+            }
+
+            return direction;
+        }
 
         public void UpdateScroll()
         {
@@ -155,14 +205,20 @@ namespace OriNoco.Charter
             if (mouseWheel > 0)
             {
                 Program.Time = lane.GetPreviousTime(Program.Time);
+                PostScrollUpdate();
             }
             else if (mouseWheel < 0)
             {
                 Program.Time = lane.GetNextTime(Program.Time);
+                PostScrollUpdate();
             }
+        }
 
+        public void PostScrollUpdate()
+        {
             yOffset = Program.Time * yScale;
             UpdateNotePositions();
+            Program.RhineScene.UpdatePlayerPosition();
         }
 
         public override void Draw()

@@ -145,7 +145,7 @@ namespace OriNoco
                     result = changes[index - 1].time;
             }
 
-            return result < 0 ? 0 : result;
+            return result <= 0 ? 0 : result;
         }
     }
 
