@@ -69,19 +69,30 @@ namespace OriNoco
             return changes.Count - 1;
         }
 
+        public virtual LaneChange? GetChangeFromTime(float time)
+        {
+            for (int i = 0; i < changes.Count; i++)
+            {
+                if (time < changes[i].time)
+                    return i == 0 ? null : changes[i - 1];
+            }
+
+            return changes.Count > 0 ? changes[changes.Count - 1] : null;
+        }
+
         public virtual float AdjustTimeToRate(float time, float division = 1f)
         {
             int index = GetChangeIndexFromTime(time);
             if (index < 0)
             {
                 float timePerRate = 1f / (initialRate * division);
-                return (float)Math.Floor(time / timePerRate) * timePerRate;
+                return (int)(time / timePerRate) * timePerRate;
             }
             else
             {
                 float offset = changes[index].time - time;
                 float timePerRate = 1f / (changes[index].rate * division);
-                return (float)Math.Floor(offset / timePerRate) * timePerRate + changes[index].time;
+                return (int)(offset / timePerRate) * timePerRate + changes[index].time;
             }
         }
 
@@ -107,13 +118,13 @@ namespace OriNoco
             if (index < 0)
             {
                 float timePerRate = 1f / (initialRate * division);
-                newTime = (float)Math.Floor(time / timePerRate) * timePerRate;
+                newTime = (int)(time / timePerRate) * timePerRate;
             }
             else
             {
                 float offset = changes[index].time - time;
                 float timePerRate = 1f / (changes[index].rate * division);
-                newTime = (float)Math.Floor(offset / timePerRate) * timePerRate + changes[index].time;
+                newTime = (int)(offset / timePerRate) * timePerRate + changes[index].time;
             }
         }
 

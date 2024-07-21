@@ -344,23 +344,52 @@ namespace OriNoco.Rhine
                     ImGui.TableNextRow();
                     ImGui.TableSetColumnIndex(0);
 
-                    GUI.TextColored(new(0f, 1f, 0f, 1f), "Player");
-                    GUI.Text($"Position: {player.drawable.Position}");
-                    GUI.Text($"Direction: {player.direction}");
-                    player.mode = GUI.ComboBox("Create Mode", player.mode);
-                    player.speed = GUI.Slider("Speed", player.speed, 1f, 20f);
-
+                    GUI.TextColored(new(0f, 1f, 0f, 1f), "Player Speed");
+                    var change = lane.GetChangeFromTime(Core.Time);
+                    if (change != null)
+                    {
+                        GUI.Text($"Change Time: " + change.time);
+                        GUI.Text($"Change Index: " + lane.changes.IndexOf(change));
+                        if (ImGui.InputFloat("Speed", ref change.rate, 0.5f))
+                            UpdateNotesFromIndex(0);
+                    }
+                    else
+                    {
+                        GUI.Text($"Initial Speed");
+                        if (ImGui.InputFloat("Speed", ref lane.initialRate, 0.5f))
+                            UpdateNotesFromIndex(0);
+                    }
 
                     ImGui.TableSetColumnIndex(1);
+                    GUI.TextColored(new(0f, 1f, 0f, 1f), "Rhythm");
+                    var bpmLaneChange = Program.Charter.lane.GetChangeFromTime(Core.Time);
+                    if (bpmLaneChange != null)
+                    {
+                        GUI.Text($"Change Time: " + bpmLaneChange.time);
+                        GUI.Text($"Change Index: " + Program.Charter.lane.changes.IndexOf(bpmLaneChange));
+                        var bpmChange = new BPMChange(bpmLaneChange);
+                        if (ImGui.InputFloat("BPM", ref bpmChange.bpm, 0.5f))
+                        {
+                            bpmLaneChange.rate = bpmChange.GetRate();
+                            UpdateNotesFromIndex(0);
+                        }
+                    }
+                    else
+                    {
+                        GUI.Text($"Initial BPM");
+                        float initRate = 60f / Program.Charter.lane.initialRate;
+                        if (ImGui.InputFloat("BPM", ref initRate, 0.5f))
+                        {
+                            Program.Charter.lane.initialRate = 60f / initRate;
+                            UpdateNotesFromIndex(0);
+                        }
+                    }
+
+                    ImGui.TableSetColumnIndex(2);
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Camera");
                     GUI.Text($"Position: {viewport.Position}");
                     viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
                     followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
-
-                    ImGui.TableSetColumnIndex(2);
-                    GUI.TextColored(new(0f, 1f, 0f, 1f), "UI");
-                    fontSize = GUI.Slider("Font Size", fontSize, 10f, 50f);
-                    GUI.Text($"Hovering GUI: " + GUI.IsOverAnyElement);
 
                     ImGui.EndTable();
                 }

@@ -27,6 +27,8 @@
             bpm = 60f / change.rate;
         }
 
+        public float GetRate() => 60f / bpm;
+
         public LaneChange ToChange()
         {
             return new LaneChange
