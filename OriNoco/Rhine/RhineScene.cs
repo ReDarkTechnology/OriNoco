@@ -231,6 +231,9 @@ namespace OriNoco.Rhine
             {
                 var note = notes[index];
 
+                if (index == 0)
+                    note.note.Position = Direction.Up.ToDirection() * lane.GetValueFromTime(note.time);
+
                 Vector2 position = note.note.Position;
                 float previousValue = lane.GetValueFromTime(note.time);
                 Direction direction = note.direction;
