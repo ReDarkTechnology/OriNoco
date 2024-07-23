@@ -86,30 +86,20 @@ namespace OriNoco
             if (index < 0)
             {
                 float timePerRate = 1f / (initialRate * division);
-                return (int)(time / timePerRate) * timePerRate;
+                return MathF.Round(time / timePerRate) * timePerRate;
             }
             else
             {
                 float offset = changes[index].time - time;
                 float timePerRate = 1f / (changes[index].rate * division);
-                return (int)(offset / timePerRate) * timePerRate + changes[index].time;
+                return MathF.Round(offset / timePerRate) * timePerRate + changes[index].time;
             }
         }
 
         public virtual bool IsAPartOfRate(float time, float division = 1f)
         {
-            int index = GetChangeIndexFromTime(time);
-            if (index < 0)
-            {
-                float timePerRate = 1f / (initialRate * division);
-                return time % timePerRate < float.Epsilon;
-            }
-            else
-            {
-                float offset = changes[index].time - time;
-                float timePerRate = 1f / (changes[index].rate * division);
-                return offset % timePerRate < float.Epsilon;
-            }
+            AdjustTimeToRate(time, out float newTime, out int index, division);
+            return newTime - time < float.Epsilon;
         }
 
         public virtual void AdjustTimeToRate(float time, out float newTime, out int index, float division = 1f)
@@ -118,13 +108,13 @@ namespace OriNoco
             if (index < 0)
             {
                 float timePerRate = 1f / (initialRate * division);
-                newTime = (int)(time / timePerRate) * timePerRate;
+                newTime = MathF.Round(time / timePerRate) * timePerRate;
             }
             else
             {
                 float offset = changes[index].time - time;
                 float timePerRate = 1f / (changes[index].rate * division);
-                newTime = (int)(offset / timePerRate) * timePerRate + changes[index].time;
+                newTime = MathF.Round(offset / timePerRate) * timePerRate + changes[index].time;
             }
         }
 
