@@ -34,6 +34,7 @@ namespace OriNoco.Charter
         public float yScale = 125f;
         public float yOffset = 0;
         public float division = 2f;
+        public int gridLineCount = 64;
         private float mouseWheel;
 
         public ColorF judgementNoteColor = new ColorF(0.8f, 0.8f, 0.8f, 1f);
@@ -284,7 +285,7 @@ namespace OriNoco.Charter
             Graphics.DrawLineEx(new Vector2(screenCoord3.X, 0), new Vector2(screenCoord3.X, Window.GetScreenHeight() - YPadding), 1f, Color.Red);
 
             float time = lane.GetNextTime(Core.Time, division);
-            for (int i = 0; i < 24; i++)
+            for (int i = 0; i < gridLineCount; i++)
             {
                 Graphics.DrawLineEx(new Vector2(screenCoord.X, GetScreenY(time * yScale)), new Vector2(screenCoord3.X, GetScreenY(time * yScale)), 1f, lane.IsAPartOfRate(time) ? Color.Blue : Color.Green);
                 time = lane.GetNextTime(time, division);

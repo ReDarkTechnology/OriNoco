@@ -398,15 +398,21 @@ namespace OriNoco.Rhine
                         }
                     }
 
-                    if(ImGui.SliderInt("Division Mode", ref divisionMode, 0, divisions.Length - 0))
-                        Program.Charter.division = divisions[divisionMode];
-                    GUI.Text("Current division: " + divisions[divisionMode]);
-
                     ImGui.TableSetColumnIndex(2);
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Camera");
                     GUI.Text($"Position: {viewport.Position}");
                     viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
                     followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
+
+                    ImGui.TableNextRow();
+                    ImGui.TableSetColumnIndex(0);
+                    GUI.TextColored(new(0f, 1f, 0f, 1f), "Charter");
+
+                    if (ImGui.SliderInt("Division Mode", ref divisionMode, 0, divisions.Length - 1))
+                        Program.Charter.division = divisions[divisionMode];
+                    GUI.Text("Current division: " + divisions[divisionMode]);
+
+                    ImGui.SliderInt("Grid Lines Count", ref Program.Charter.gridLineCount, 16, 512);
 
                     ImGui.EndTable();
                 }
