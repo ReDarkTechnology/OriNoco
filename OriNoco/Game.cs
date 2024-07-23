@@ -9,6 +9,7 @@ using Raylib_CSharp.Images;
 using Raylib_CSharp.Logging;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
+using OriNoco.Tweening;
 
 namespace OriNoco
 {
@@ -52,6 +53,7 @@ namespace OriNoco
                         while (!Window.ShouldClose())
                         {
                             GUI.StartUpdate();
+                            ETween.Update();
                             foreach (var scene in Scenes) scene.Update();
 
                             Graphics.BeginDrawing();
