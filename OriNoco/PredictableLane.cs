@@ -99,7 +99,7 @@ namespace OriNoco
         public virtual bool IsAPartOfRate(float time, float division = 1f)
         {
             AdjustTimeToRate(time, out float newTime, out int index, division);
-            return newTime - time < float.Epsilon;
+            return MathF.Abs(newTime - time) < float.Epsilon;
         }
 
         public virtual void AdjustTimeToRate(float time, out float newTime, out int index, float division = 1f)
