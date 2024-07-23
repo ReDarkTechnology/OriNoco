@@ -206,7 +206,7 @@ namespace OriNoco.Charter
         }
 
         public List<CharterNote> FindNotesAtTime(float time) =>
-            notes.FindAll(val => MathF.Abs(val.time - time) < float.Epsilon);
+            notes.FindAll(val => MathF.Abs(val.time - time) < Program.TolerableEpsilon);
 
         public Direction GetDirectionAtTime(float time)
         {

@@ -35,6 +35,8 @@ namespace OriNoco.Rhine
 
         public Point viewportOffset = new(0, 20);
         public Point viewportScaleOffset = new(300, 220);
+        public int divisionMode = 1;
+        public float[] divisions = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 24, 32 ];
 
         public Font mainFont;
 
@@ -198,7 +200,7 @@ namespace OriNoco.Rhine
         }
 
         public RhineNote? GetNoteAtTime(float time) =>
-            notes.Find(val => MathF.Abs(val.time - time) < float.Epsilon);
+            notes.Find(val => MathF.Abs(val.time - time) < Program.TolerableEpsilon);
 
         public void UpdateNote(float time)
         {
@@ -354,13 +356,19 @@ namespace OriNoco.Rhine
                         GUI.Text($"Change Time: " + change.time);
                         GUI.Text($"Change Index: " + lane.changes.IndexOf(change));
                         if (ImGui.InputFloat("Speed", ref change.rate, 0.5f))
+                        {
+                            change.rate = Math.Max(change.rate, 0f);
                             UpdateNotesFromIndex(0);
+                        }
                     }
                     else
                     {
                         GUI.Text($"Initial Speed");
                         if (ImGui.InputFloat("Speed", ref lane.initialRate, 0.5f))
+                        {
+                            lane.initialRate = Math.Max(lane.initialRate, 0f);
                             UpdateNotesFromIndex(0);
+                        }
                     }
 
                     ImGui.TableSetColumnIndex(1);
@@ -373,6 +381,7 @@ namespace OriNoco.Rhine
                         var bpmChange = new BPMChange(bpmLaneChange);
                         if (ImGui.InputFloat("BPM", ref bpmChange.bpm, 0.5f))
                         {
+                            bpmChange.bpm = Math.Max(bpmChange.bpm, 10f);
                             bpmLaneChange.rate = bpmChange.GetRate();
                             UpdateNotesFromIndex(0);
                         }
@@ -383,10 +392,15 @@ namespace OriNoco.Rhine
                         float initRate = 60f / Program.Charter.lane.initialRate;
                         if (ImGui.InputFloat("BPM", ref initRate, 0.5f))
                         {
+                            initRate = Math.Max(initRate, 10f);
                             Program.Charter.lane.initialRate = 60f / initRate;
                             UpdateNotesFromIndex(0);
                         }
                     }
+
+                    if(ImGui.SliderInt("Division Mode", ref divisionMode, 0, divisions.Length - 0))
+                        Program.Charter.division = divisions[divisionMode];
+                    GUI.Text("Current division: " + divisions[divisionMode]);
 
                     ImGui.TableSetColumnIndex(2);
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Camera");
