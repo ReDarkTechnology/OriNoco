@@ -36,4 +36,13 @@ namespace OriNoco
         Warning = 48,
         Information = 64
     }
+
+    public enum Result
+    {
+        Ok = 1,
+        Cancel = 2,
+        Yes = 6,
+        No = 7,
+        Unknown = 128
+    }
 }

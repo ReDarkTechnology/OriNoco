@@ -182,6 +182,22 @@ namespace OriNoco.Rhine
             int index = lane.GetChangeIndexFromTime(Core.Time);
             player.speed = index >= 0 ? lane.changes[index].rate : lane.initialRate;
         }
+
+        public bool IsDirectoryWritable(string dirPath, bool throwIfFails = false)
+        {
+            try
+            {
+                using FileStream fs = File.Create(Path.Combine(dirPath, Path.GetRandomFileName()), 1, FileOptions.DeleteOnClose);
+                return true;
+            }
+            catch
+            {
+                if (throwIfFails)
+                    throw;
+                else
+                    return false;
+            }
+        }
         #endregion
         #region Notes
         public RhineNote CreateNote(NoteType type, Direction direction, float time, Vector2 position)
@@ -340,7 +356,7 @@ namespace OriNoco.Rhine
 
                     if(ImGui.MenuItem("Message Box Test"))
                     {
-                        MessageBox.Show("This is a cross-platform message box test!", "Info", MessageBoxType.Ok, MessageBoxIcon.Warning);
+                        MessageBox.Show("This is a cross-platform message box test!", "Info", MessageBoxType.Ok, MessageBoxIcon.None);
                     }
                     ImGui.EndMenu();
                 }

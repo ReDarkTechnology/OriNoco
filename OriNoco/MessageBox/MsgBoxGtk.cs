@@ -4,7 +4,7 @@ namespace OriNoco
 {
     internal class MsgBoxGtk
     {
-        internal static int Show(string text, string caption, MessageBoxType type, MessageBoxIcon icon)
+        internal static Result Show(string text, string caption, MessageBoxType type, MessageBoxIcon icon)
         {
             MessageType gtkType = MessageType.Other;
             ButtonsType gtkBtnType = ButtonsType.None;
@@ -22,7 +22,10 @@ namespace OriNoco
             }
 
             switch (icon)
-            { 
+            {
+                case MessageBoxIcon.None:
+                    gtkType = MessageType.Other;
+                    break;
                 case MessageBoxIcon.Error:
                     gtkType = MessageType.Error;
                     break;
@@ -35,9 +38,21 @@ namespace OriNoco
             }
 
             var dialog = new MessageDialog(null, DialogFlags.Modal, gtkType, gtkBtnType, text);
-            int result = dialog.Run();
+            var result = (ResponseType)dialog.Run();
             dialog.Destroy();
-            return result;
+            switch (result)
+            {
+                case ResponseType.Ok:
+                    return Result.Ok;
+                case ResponseType.Cancel:
+                    return Result.Cancel;
+                case ResponseType.Yes:
+                    return Result.Yes;
+                case ResponseType.No:
+                    return Result.No;
+                default:
+                    return Result.Unknown;
+            }
         }
     }
 }
