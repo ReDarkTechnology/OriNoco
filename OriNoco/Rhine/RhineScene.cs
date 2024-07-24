@@ -23,6 +23,7 @@ namespace OriNoco.Rhine
         public bool showNoteCount = true;
         public bool showFPS = true;
         public bool showTime = true;
+        public bool adjustToGrid = true;
 
         public bool unlockBreakingChanges = false;
 
@@ -373,11 +374,21 @@ namespace OriNoco.Rhine
             GUI.SetNextWindowSize(new Vector2(size.X, 300));
             GUI.BeginWindow("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
             {
+                if (ImGui.SliderFloat("Time", ref Core.Time, 0f, 480f))
+                {
+                    if (adjustToGrid)
+                        Core.Time = Program.Charter.lane.AdjustTimeToRate(Core.Time, Program.Charter.division);
+                    Program.Charter.PostScrollUpdate();
+                }
+
+                ImGui.Checkbox("Adjust to Grid", ref adjustToGrid);
+
                 if (ImGui.BeginTable("Settings", 3, ImGuiTableFlags.Borders))
                 {
                     ImGui.TableNextRow();
                     ImGui.TableSetColumnIndex(0);
 
+                    ImGui.PushID("Speed");
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Player Speed");
                     var change = lane.GetChangeFromTime(Core.Time);
                     if (change != null)
@@ -392,7 +403,7 @@ namespace OriNoco.Rhine
 
                         if (GUI.Button("Add"))
                         {
-                            lane.changes.Add(new LaneChange(Core.Time, change.rate));
+                            lane.Add(Core.Time, change.rate);
                             UpdateNotesFromIndex(0);
                         }
 
@@ -413,15 +424,19 @@ namespace OriNoco.Rhine
                             UpdateNotesFromIndex(0);
                         }
 
+                        if (Core.Time <= 0f) ImGui.BeginDisabled();
                         if (GUI.Button("Add"))
                         {
-                            lane.changes.Add(new LaneChange(Core.Time, lane.initialRate));
-                            UpdateNotesFromIndex(0);
+                            lane.Add(Core.Time, lane.initialRate);
                         }
+                        if (Core.Time <= 0f) ImGui.EndDisabled();
                     }
+                    ImGui.PopID();
 
                     ImGui.TableSetColumnIndex(1);
+                    ImGui.PushID("BPM");
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Rhythm");
+
                     var bpmLaneChange = Program.Charter.lane.GetChangeFromTime(Core.Time);
                     if (bpmLaneChange != null)
                     {
@@ -434,6 +449,26 @@ namespace OriNoco.Rhine
                             bpmLaneChange.rate = bpmChange.GetRate();
                             UpdateNotesFromIndex(0);
                         }
+
+                        bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, 12f) || unlockBreakingChanges;
+
+                        if (!isAllowed)
+                        {
+                            GUI.Text("Putting a BPM change offbeat is not recommended!");
+                            if (GUI.Button("Force Anyway"))
+                                unlockBreakingChanges = true;
+                            ImGui.BeginDisabled();
+                        }
+
+                        if (GUI.Button("Add"))
+                            Program.Charter.lane.Add(Core.Time, Program.Charter.lane.initialRate);
+
+                        if (!isAllowed) ImGui.EndDisabled();
+
+                        GUI.SameLine();
+
+                        if (GUI.Button("Remove"))
+                            Program.Charter.lane.changes.Remove(bpmLaneChange);
                     }
                     else
                     {
@@ -445,7 +480,23 @@ namespace OriNoco.Rhine
                             Program.Charter.lane.initialRate = 60f / initRate;
                             UpdateNotesFromIndex(0);
                         }
+
+                        bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, 12f) || unlockBreakingChanges;
+                        if (!isAllowed)
+                        {
+                            GUI.Text("Putting a BPM change offbeat is not recommended!");
+                            if (GUI.Button("Force Anyway"))
+                                unlockBreakingChanges = true;
+                        }
+                        if (!isAllowed || Core.Time <= 0f) ImGui.BeginDisabled();
+
+                        if (ImGui.Button("Add"))
+                        {
+                            Program.Charter.lane.Add(Core.Time, Program.Charter.lane.initialRate);
+                        }
+                        if (!isAllowed || Core.Time <= 0f) ImGui.EndDisabled();
                     }
+                    ImGui.PopID();
 
                     ImGui.TableSetColumnIndex(2);
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Camera");

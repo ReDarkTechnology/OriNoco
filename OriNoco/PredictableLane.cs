@@ -1,6 +1,7 @@
 ﻿using Raylib_CSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace OriNoco
@@ -112,7 +113,7 @@ namespace OriNoco
             }
             else
             {
-                float offset = changes[index].time - time;
+                float offset = time - changes[index].time;
                 float timePerRate = 1f / (changes[index].rate * division);
                 newTime = MathF.Round(offset / timePerRate) * timePerRate + changes[index].time;
             }
@@ -135,7 +136,7 @@ namespace OriNoco
 
             if (index + 1 < changes.Count)
             {
-                if (changes[index + 1].time < result)
+                if (result > changes[index + 1].time)
                     result = changes[index + 1].time;
             }
 
@@ -164,6 +165,14 @@ namespace OriNoco
             }
 
             return result <= 0 ? 0 : result;
+        }
+
+        public LaneChange Add(float time, float rate)
+        {
+            var change = new LaneChange(time, rate);
+            changes.Add(change);
+            changes.Sort((a, b) => a.time.CompareTo(b.time));
+            return change;
         }
     }
 
