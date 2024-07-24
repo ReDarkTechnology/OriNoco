@@ -11,7 +11,6 @@ using Raylib_CSharp.Colors;
 using Raylib_CSharp.Fonts;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
-using SharpFileDialog;
 using Point = System.Drawing.Point;
 using OriNoco.Data;
 
@@ -21,6 +20,12 @@ namespace OriNoco.Rhine
     {
         #region Variables
         public bool showProperties = true;
+        public bool showNoteCount = true;
+        public bool showFPS = true;
+        public bool showTime = true;
+
+        public bool unlockBreakingChanges = false;
+
         private Color backgroundColor = Color.Black;
 
         private readonly RhinePlayer player;
@@ -34,13 +39,16 @@ namespace OriNoco.Rhine
         public float followSpeed = 1.5f;
 
         public Point viewportOffset = new(0, 20);
-        public Point viewportScaleOffset = new(300, 220);
+        public Point viewportScaleOffset = new(300, 320);
         public int divisionMode = 1;
         public float[] divisions = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 24, 32 ];
 
         public Font mainFont;
 
+        public string? filePath = null;
+        public ChartData data = new();
         public List<RhineNote> notes = [];
+        public string?[] debugInfo = new string?[3]; 
         #endregion
         #region Initialization
         public RhineScene()
@@ -70,7 +78,7 @@ namespace OriNoco.Rhine
             if (showProperties)
             {
                 viewportOffset = new(0, 20);
-                viewportScaleOffset = new(300, 220);
+                viewportScaleOffset = new(300, 320);
             }
             else
             {
@@ -95,9 +103,19 @@ namespace OriNoco.Rhine
             Graphics.ClearBackground(backgroundColor);
             
             Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"FPS: {Time.GetFPS()}", new Vector2(10, 50), fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"Notes: {notes.Count}", new Vector2(10, 70), fontSize, 5, Color.White);
-            Graphics.DrawTextEx(mainFont, $"Time: {Core.Time}", new Vector2(10, 110), fontSize, 5, Color.White);
+            debugInfo[0] = showFPS ? $"FPS: {Time.GetFPS()}" : null;
+            debugInfo[1] = showNoteCount ? $"Notes: {notes.Count}" : null;;
+            debugInfo[2] = showTime ? $"Time: {Core.Time}" : null;
+
+            int offset = 50;
+            for (int i = 0; i < debugInfo.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(debugInfo[i]))
+                {
+                    Graphics.DrawTextEx(mainFont, debugInfo[i], new Vector2(10, offset), fontSize, 5, Color.White);
+                    offset += 20;
+                }
+            }
 
             viewport.Begin();
 
@@ -281,34 +299,21 @@ namespace OriNoco.Rhine
                         Window.SetTitle("OriNoco - None");
                     }
 
-                    if (File.Exists("notes.json"))
+                    if (ImGui.MenuItem("Open"))
                     {
-                        if (ImGui.MenuItem("Load"))
-                        {
-                            var serializables = MainSerializer.Deserialize<List<NoteData>>(File.ReadAllText("notes.json"));
-                            if (serializables != null)
-                            {
-                                notes.Clear();
-                                foreach (var serializable in serializables)
-                                {
-                                    CreateNote(serializable.Type, serializable.Direction, serializable.Time, serializable.Position);
-                                    Program.Charter.EvaulateDirectionToCreateNote(serializable.Direction, serializable.Time);
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Failed to load notes");
-                            }
-                        }
                     }
+
+                    ImGui.Separator();
 
                     if (ImGui.MenuItem("Save"))
                     {
-                        var serializables = new List<NoteData>();
-                        foreach (var note in notes)
-                            serializables.Add(new NoteData(note));
-                        File.WriteAllText("notes.json", MainSerializer.Serialize(serializables, true));
                     }
+
+                    if (ImGui.MenuItem("Save As..."))
+                    {
+                    }
+
+                    ImGui.Separator();
 
                     if (ImGui.MenuItem("Exit"))
                     {
@@ -321,14 +326,22 @@ namespace OriNoco.Rhine
                 if (ImGui.BeginMenu("Edit"))
                 {
                     if (ImGui.MenuItem("Refresh All Notes"))
-                    {
-                    }
+                        UpdateNotesFromIndex(0);
+
                     ImGui.EndMenu();
                 }
 
-                if (ImGui.BeginMenu("Window"))
+                if (ImGui.BeginMenu("View"))
                 {
+                    ImGui.MenuItem("FPS", string.Empty, ref showFPS);
+                    ImGui.MenuItem("Note Count", string.Empty, ref showNoteCount);
+                    ImGui.MenuItem("Time", string.Empty, ref showTime);
                     ImGui.MenuItem("Properties", string.Empty, ref showProperties);
+
+                    if(ImGui.MenuItem("Message Box Test"))
+                    {
+                        MessageBox.Show("This is a cross-platform message box test!", "Info", MessageBoxType.Ok, MessageBoxIcon.Warning);
+                    }
                     ImGui.EndMenu();
                 }
             }
@@ -341,7 +354,7 @@ namespace OriNoco.Rhine
 
             var size = GetViewportSize();
             GUI.SetNextWindowPos(new Vector2(0, size.Y + 20));
-            GUI.SetNextWindowSize(new Vector2(size.X, 200));
+            GUI.SetNextWindowSize(new Vector2(size.X, 300));
             GUI.BeginWindow("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
             {
                 if (ImGui.BeginTable("Settings", 3, ImGuiTableFlags.Borders))
@@ -360,6 +373,20 @@ namespace OriNoco.Rhine
                             change.rate = Math.Max(change.rate, 0f);
                             UpdateNotesFromIndex(0);
                         }
+
+                        if (GUI.Button("Add"))
+                        {
+                            lane.changes.Add(new LaneChange(Core.Time, change.rate));
+                            UpdateNotesFromIndex(0);
+                        }
+
+                        GUI.SameLine();
+
+                        if (GUI.Button("Remove"))
+                        {
+                            lane.changes.Remove(change);
+                            UpdateNotesFromIndex(0);
+                        }
                     }
                     else
                     {
@@ -367,6 +394,12 @@ namespace OriNoco.Rhine
                         if (ImGui.InputFloat("Speed", ref lane.initialRate, 0.5f))
                         {
                             lane.initialRate = Math.Max(lane.initialRate, 0f);
+                            UpdateNotesFromIndex(0);
+                        }
+
+                        if (GUI.Button("Add"))
+                        {
+                            lane.changes.Add(new LaneChange(Core.Time, lane.initialRate));
                             UpdateNotesFromIndex(0);
                         }
                     }
@@ -403,17 +436,22 @@ namespace OriNoco.Rhine
                     GUI.Text($"Position: {viewport.Position}");
                     viewport.OrthographicSize = GUI.Slider("Size", viewport.OrthographicSize, 1f, 25f);
                     followSpeed = GUI.Slider("Follow Speed", followSpeed, 0f, 10f);
+                    ImGui.EndTable();
 
+                }
+
+                if (ImGui.BeginTable("Charter", 2, ImGuiTableFlags.Borders))
+                {
                     ImGui.TableNextRow();
                     ImGui.TableSetColumnIndex(0);
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Charter");
 
+                    GUI.Text("Actual Division: " + divisions[divisionMode]);
                     if (ImGui.SliderInt("Division Mode", ref divisionMode, 0, divisions.Length - 1))
                         Program.Charter.division = divisions[divisionMode];
-                    GUI.Text("Current division: " + divisions[divisionMode]);
 
-                    ImGui.SliderInt("Grid Lines Count", ref Program.Charter.gridLineCount, 16, 512);
-
+                    ImGui.SliderInt("Grid Lines Count", ref Program.Charter.gridLineCount, 16, 512, null);
+                    ImGui.SliderFloat("Grid Scale", ref Program.Charter.yScale, 50f, 1000f);
                     ImGui.EndTable();
                 }
             }

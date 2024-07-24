@@ -13,10 +13,10 @@ namespace OriNoco.Tests
         {
             lane.initialRate = 3f;
 
-            lane.changes.Add(new LaneChange(2f, 3f));
-            lane.changes.Add(new LaneChange(10f, 4f));
-            lane.changes.Add(new LaneChange(4f, 6f));
-            lane.changes.Add(new LaneChange(3f, 9f));
+            lane.changes.Add(new LaneChange(3f, 2f));
+            lane.changes.Add(new LaneChange(4f, 10f));
+            lane.changes.Add(new LaneChange(6f, 4f));
+            lane.changes.Add(new LaneChange(9f, 3f));
         }
 
         public void Run()

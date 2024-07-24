@@ -169,14 +169,14 @@ namespace OriNoco
 
     public class LaneChange
     {
-        public float rate = 1f;
         public float time;
+        public float rate = 1f;
 
         public LaneChange() {}
-        public LaneChange(float rate, float time)
+        public LaneChange(float time, float rate)
         {
-            this.rate = rate;
             this.time = time;
+            this.rate = rate;
         }
     }
 }
