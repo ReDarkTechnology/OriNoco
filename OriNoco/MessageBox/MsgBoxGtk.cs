@@ -1,11 +1,19 @@
-﻿using Gtk;
+﻿using System;
+using Gtk;
 
 namespace OriNoco
 {
     internal class MsgBoxGtk
     {
+        internal static bool _initialized;
         internal static Result Show(string text, string caption, MessageBoxType type, MessageBoxIcon icon)
         {
+            if (!_initialized)
+            {
+                Application.Init();
+                _initialized = true;
+            }
+
             MessageType gtkType = MessageType.Other;
             ButtonsType gtkBtnType = ButtonsType.None;
             switch(type)
@@ -37,9 +45,12 @@ namespace OriNoco
                     break;
             }
 
-            var dialog = new MessageDialog(null, DialogFlags.Modal, gtkType, gtkBtnType, text);
+            var dialog = new MessageDialog(null, DialogFlags.DestroyWithParent, gtkType, gtkBtnType, text) { Title = caption };
             var result = (ResponseType)dialog.Run();
             dialog.Destroy();
+            while (Application.EventsPending())
+                Application.RunIteration();
+
             switch (result)
             {
                 case ResponseType.Ok:
