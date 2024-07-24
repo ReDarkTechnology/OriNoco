@@ -1,4 +1,5 @@
-﻿using Raylib_CSharp;
+﻿using OriNoco.Tweening;
+using Raylib_CSharp;
 using Raylib_CSharp.Colors;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ namespace OriNoco.Rhine
 {
     public class RhineNote
     {
+        const float particleDuration = 10f;
+
         public NoteType type = NoteType.Tap;
         public Direction direction = Direction.Up;
 
@@ -23,7 +26,7 @@ namespace OriNoco.Rhine
             note = new TextureDrawable(TextureDictionary.note);
             arrow = new TextureDrawable(TextureDictionary.arrow) { Color = Color.Black };
 
-            InitializeParticles(8, 2f, 10f);
+            InitializeParticles(4, -2f, 2f);
         }
 
         public void AdjustDrawables(Vector2 position, float scale)
@@ -45,14 +48,22 @@ namespace OriNoco.Rhine
 
         public void Update(float time)
         {
+            if(time > this.time)
+                note.Color = Color.Yellow;
+            else
+                note.Color = Color.White;
+
             foreach (var particle in particles)
-                particle.Move(time);
+                particle.Move(note.Position, Math.Clamp(time - this.time, 0f, particleDuration) / particleDuration);
         }
 
         public void Draw()
         {
             note.Draw();
             arrow.Draw();
+
+            foreach (var particle in particles)
+                particle.drawable.Draw();
         }
 
         public void InitializeParticles(int amount, float limitMin, float limitMax)
@@ -78,13 +89,24 @@ namespace OriNoco.Rhine
             public Particle()
             {
                 drawable = new TextureDrawable(TextureDictionary.note);
+                drawable.Scale = new Vector2(0.2f, 0.2f);
                 drawable.Color = Color.Yellow;
             }
 
-            public void Move(float time)
+            public void Move(Vector2 center, float time)
             {
-                drawable.Position += direction * (limit * time) * Time.GetFrameTime();
+                drawable.Position = center + (direction * EaseFunc.CubicOut(time) * limit);
+                if (time == 0)
+                    drawable.Color.A = 0f;
+                else
+                    drawable.Color.A = 1f - EaseFunc.CubicOut(time);
             }
+
+            public static float OutCubicFloat(float start, float end, float time) => start + ((end - start) * OutCubic(time));
+            public static Vector2 OutCubicVector3(Vector2 start, Vector2 end, float time) => start + ((end - start) * OutCubic(time));
+
+            public static float InCubic(float t) => t * t * t;
+            public static float OutCubic(float t) => 1 - InCubic(1 - t);
         }
     }
 }

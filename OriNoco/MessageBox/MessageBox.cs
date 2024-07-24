@@ -5,7 +5,7 @@ namespace OriNoco
 {
     public static class MessageBox
     {
-        public static Result Show(string text, string caption, MessageBoxType type, MessageBoxIcon icon)
+        public static Result Show(string text, string caption = null, MessageBoxType type = MessageBoxType.Ok, MessageBoxIcon icon = MessageBoxIcon.None)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

@@ -10,6 +10,7 @@ namespace OriNoco
         public static RhineScene Rhine = new RhineScene();
         public static CharterScene Charter = new CharterScene();
         public const float TolerableEpsilon = 0.000012f;
+        public const float GridEpsilon = 0.00015f;
 
         [STAThread]
         static void Main(string[] args)

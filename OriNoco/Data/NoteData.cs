@@ -1,7 +1,7 @@
-﻿using OriNoco.Rhine;
-using System;
+﻿using System;
 using System.Numerics;
 using System.Text.Json.Serialization;
+using OriNoco.Rhine;
 
 namespace OriNoco.Data
 {
@@ -13,9 +13,11 @@ namespace OriNoco.Data
         [JsonPropertyName("time")]
         public float Time { get; set; }
         [JsonPropertyName("direction")]
-        public Direction Direction { get; set; }
+        public Direction Direction { get; set; } = Direction.Up;
         [JsonPropertyName("type")]
-        public NoteType Type { get; set; }
+        public NoteType Type { get; set; } = NoteType.Tap;
+        [JsonPropertyName("persistPosition")]
+        public bool PersistPosition { get; set; } = false;
 
         public NoteData() { }
         public NoteData(RhineNote note)

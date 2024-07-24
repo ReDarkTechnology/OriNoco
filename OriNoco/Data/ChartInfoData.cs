@@ -1,48 +1,73 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace OriNoco.Data
 {
     [Serializable]
     public class ChartInfoData
     {
-        public string? levelCodename = "untitled_level";
-        public string? audioCodename = "Unnamed";
+        [JsonPropertyName("name")]
+        public string? Name { get; set; } = "untitled_level";
+        [JsonPropertyName("displayName")]
+        public string? DisplayName { get; set; } = "Untitled";
+        [JsonPropertyName("author")]
+        public string? Author { get; set; } = "Unknown";
 
-        public string? displayName = "Untitled";
-        public string? chartCreator = "Unknown";
-        public string? levelComposer = "Unknown";
-        public float levelDifficulty = 0f;
-        public ComposerSocials[] composerSocials = [];
-        public LevelSets levelSet = LevelSets.Community;
+        [JsonPropertyName("audioName")]
+        public string? AudioName { get; set; } = "Unnamed";
+        [JsonPropertyName("audioComposer")]
+        public string? AudioComposer { get; set; } = "Unknown";
+        [JsonPropertyName("syncOffset")]
+        public float AudioOffset { get; set; }
+        [JsonPropertyName("composerSocials")]
+        public List<ComposerSocials> ComposerSocials { get; set; } = [];
 
-        public float speed = 1f;
-        public float syncOffset;
-        public float syncOffsetAnim = -1;
+        [JsonPropertyName("levelDifficulty")]
+        public float LevelDifficulty { get; set; } = 0f;
+        [JsonPropertyName("levelSet")]
+        public LevelSets LevelSet { get; set; } = LevelSets.Community;
 
-        public float noteAnimationTimeDelay = 1f;
-        public float noteAnimationSpeed = 0.3f;
-        public float orthographicSize = 5f;
+        [JsonPropertyName("noteAnimationTimeDelay")]
+        public float NoteAnimationTimeDelay { get; set; } = 1f;
+        [JsonPropertyName("noteAnimationSpeed")]
+        public float NoteAnimationSpeed { get; set; } = 0.3f;
+        [JsonPropertyName("orthographicSize")]
+        public float OrthographicSize { get; set; } = 5f;
 
-        public ColorF globalSpriteColor = new ColorF(1f, 1f, 1f);
-        public bool invertedColors;
+        [JsonPropertyName("globalSpriteColor")]
+        public ColorF GlobalSpriteColor { get; set; } = new ColorF(1f, 1f, 1f);
+        [JsonPropertyName("invertedColors")]
+        public bool InvertedColors { get; set; }
 
-        public ColorF bgColor;
-        public ColorF lineColor;
-        public ColorF particleColor;
-        public ColorF gradientColor;
-        public ColorF textColor;
-        public ColorF firefliesColor;
+        [JsonPropertyName("backgroundColor")]
+        public ColorF BackgroundColor { get; set; }
+        [JsonPropertyName("lineColor")]
+        public ColorF LineColor { get; set; }
+        [JsonPropertyName("particleColor")]
+        public ColorF ParticleColor { get; set; }
+        [JsonPropertyName("gradientColor")]
+        public ColorF GradientColor { get; set; }
+        [JsonPropertyName("textColor")]
+        public ColorF TextColor { get; set; }
+        [JsonPropertyName("firefliesColor")]
+        public ColorF FirefliesColor { get; set; }
 
-        public bool isLockLevel;
-        public LockType lockMode;
-        public int requiredAmount;
+        [JsonPropertyName("isLockLevel")]
+        public bool IsLockLevel { get; set; }
+        [JsonPropertyName("lockMode")]
+        public LockType LockMode { get; set; }
+        [JsonPropertyName("requiredAmount")]
+        public int RequiredAmount { get; set; }
     }
 
     [Serializable]
     public struct ComposerSocials
     {
-        public string url;
-        public string path;
+        [JsonPropertyName("url")]
+        public string Url { get; set; }
+        [JsonPropertyName("path")]
+        public string Path { get; set; }
     }
 
     public enum LockType

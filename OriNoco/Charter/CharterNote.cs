@@ -34,29 +34,24 @@ namespace OriNoco.Charter
             {
                 case Direction.Left:
                     drawable = charterScene.left;
-                    xPosition = charterScene.xSpacing * -3f;
+                    xPosition = CharterScene.xSpacing * -3f;
                     break;
                 case Direction.Down:
                     drawable = charterScene.down;
-                    xPosition = charterScene.xSpacing * -1f;
+                    xPosition = CharterScene.xSpacing * -1f;
                     break;
                 case Direction.Up:
                     drawable = charterScene.up;
-                    xPosition = charterScene.xSpacing * 1f;
+                    xPosition = CharterScene.xSpacing * 1f;
                     break;
                 case Direction.Right:
                     drawable = charterScene.right;
-                    xPosition = charterScene.xSpacing * 3f;
+                    xPosition = CharterScene.xSpacing * 3f;
                     break;
             }
         }
 
-        public void UpdatePosition() =>
-            cachedPosition = charterScene.GetScreenCoords(new Vector2(xPosition, time * charterScene.yScale), true).InvertY();
-
-        public void Draw()
-        {
-            drawable.Draw(cachedPosition, Color.White);
-        }
+        public void UpdatePosition() => cachedPosition = charterScene.GetScreenCoords(new Vector2(xPosition, time * charterScene.yScale), true).InvertY();
+        public void Draw() => drawable.Draw(cachedPosition, Color.White);
     }
 }

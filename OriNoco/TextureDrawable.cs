@@ -30,7 +30,7 @@ namespace OriNoco
             }
         }
 
-        public Color Color = Color.White;
+        public ColorF Color = new ColorF(1, 1, 1, 1);
 
         private Rectangle _SourceRectangle = new(0, 0, 1, 1);
         private Rectangle SourceRectangle

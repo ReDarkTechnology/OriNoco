@@ -10,6 +10,7 @@ using Raylib_CSharp.Logging;
 using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
 using OriNoco.Tweening;
+using System.Numerics;
 
 namespace OriNoco
 {
@@ -23,6 +24,12 @@ namespace OriNoco
                 _WindowSize = value;
                 Window.SetSize(_WindowSize.X, _WindowSize.Y);
             }
+        }
+
+        public static Vector2 WindowSizeF
+        {
+            get => new(Window.GetScreenWidth(), Window.GetScreenHeight());
+            set { Window.SetSize((int)value.X, (int)value.Y); }
         }
 
         public static List<Scene> Scenes { get; private set; } = new List<Scene>();

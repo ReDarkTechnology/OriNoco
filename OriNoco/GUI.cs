@@ -82,6 +82,19 @@ namespace OriNoco
             return value;
         }
 
+        public static int Slider(string label, int value, int min, int max)
+        {
+            ImGui.SliderInt(label, ref value, min, max);
+            return value;
+        }
+
+        public static bool Slider(string label, float value, float min, float max, out float result)
+        {
+            bool changed = ImGui.SliderFloat(label, ref value, min, max);
+            result = value;
+            return changed;
+        }
+
         /// <summary>
         /// ComboBox for an Enum, doesn't support Flags
         /// </summary>
@@ -97,6 +110,88 @@ namespace OriNoco
                 }
                 ImGui.EndCombo();
             }
+            return value;
+        }
+
+        public static bool InputText(string label, string? value, uint maxLength, out string result)
+        {
+            bool changed = ImGui.InputText(label, ref value, maxLength);
+            result = value;
+            return changed;
+        }
+
+        public static string InputText(string label, string? value, uint maxLength)
+        {
+            ImGui.InputText(label, ref value, maxLength);
+            return value;
+        }
+
+        public static bool InputFloat(string label, float value, out float result)
+        {
+            bool changed = ImGui.InputFloat(label, ref value);
+            result = value;
+            return changed;
+        }
+
+        public static bool InputFloat(string label, float value, float step, out float result)
+        {
+            bool changed = ImGui.InputFloat(label, ref value, step);
+            result = value;
+            return changed;
+        }
+
+        public static float InputFloat(string label, float value)
+        {
+            ImGui.InputFloat(label, ref value);
+            return value;
+        }
+
+        public static float InputFloat(string label, float value, float step)
+        {
+            ImGui.InputFloat(label, ref value, step);
+            return value;
+        }
+
+        public static bool ColorButton(string label, ColorF value) =>
+            ImGui.ColorButton(label, new Vector4(value.R, value.G, value.B, value.A));
+
+        public static bool ColorPicker4(string label, ColorF value, out ColorF result)
+        {
+            Vector4 vecValue = new Vector4(value.R, value.G, value.B, value.A);
+            if (ImGui.ColorPicker4(label, ref vecValue))
+            {
+                result = new ColorF(vecValue.X, vecValue.Y, vecValue.Z, vecValue.W);
+                return true;
+            }
+            result = value;
+            return false;
+        }
+
+        public static ColorF ColorPicker4(string label, ColorF value)
+        {
+            Vector4 vecValue = new Vector4(value.R, value.G, value.B, value.A);
+            if (ImGui.ColorPicker4(label, ref vecValue))
+                value = new ColorF(vecValue.X, vecValue.Y, vecValue.Z, vecValue.W);
+            return value;
+        }
+
+        public static bool ColorEdit4(string label, ColorF value, out ColorF result)
+        {
+            Vector4 vecValue = new Vector4(value.R, value.G, value.B, value.A);
+            if (ImGui.ColorEdit4(label, ref vecValue))
+            {
+                result = new ColorF(vecValue.X, vecValue.Y, vecValue.Z, vecValue.W);
+                return true;
+            }
+            result = value;
+            return false;
+        }
+
+        public static ColorF ColorEdit4(string label, ColorF value)
+        {
+            Vector4 vecValue = new Vector4(value.R, value.G, value.B, value.A);
+            if (ImGui.ColorEdit4(label, ref vecValue))
+                value = new ColorF(vecValue.X, vecValue.Y, vecValue.Z, vecValue.W);
             return value;
         }
 

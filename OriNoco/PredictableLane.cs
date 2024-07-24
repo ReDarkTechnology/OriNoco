@@ -91,16 +91,16 @@ namespace OriNoco
             }
             else
             {
-                float offset = changes[index].time - time;
+                float offset = time - changes[index].time;
                 float timePerRate = 1f / (changes[index].rate * division);
                 return MathF.Round(offset / timePerRate) * timePerRate + changes[index].time;
             }
         }
 
-        public virtual bool IsAPartOfRate(float time, float division = 1f)
+        public virtual bool IsAPartOfRate(float time, float division = 1f, bool useGridEpsilon = false)
         {
             AdjustTimeToRate(time, out float newTime, out int index, division);
-            return MathF.Abs(newTime - time) < Program.TolerableEpsilon;
+            return MathF.Abs(newTime - time) < (useGridEpsilon ? Program.GridEpsilon : Program.TolerableEpsilon);
         }
 
         public virtual void AdjustTimeToRate(float time, out float newTime, out int index, float division = 1f)
@@ -140,7 +140,7 @@ namespace OriNoco
                     result = changes[index + 1].time;
             }
 
-            return result;
+            return AdjustTimeToRate(result, division);
         }
 
         public virtual float GetPreviousTime(float time, float division = 1f)
@@ -164,7 +164,7 @@ namespace OriNoco
                     result = changes[index - 1].time;
             }
 
-            return result <= 0 ? 0 : result;
+            return result <= 0 ? 0 : AdjustTimeToRate(result, division);
         }
 
         public LaneChange Add(float time, float rate)

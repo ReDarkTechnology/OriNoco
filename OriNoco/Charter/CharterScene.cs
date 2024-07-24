@@ -25,20 +25,18 @@ namespace OriNoco.Charter
         public TextureDrawable upActive = new (default);
 
         public RhythmLane lane = new();
-        public float bpm = 120f;
-
         public TextureDrawable rightActive = new(default);
 
-        public float xSpacing = 32f;
         public float yScale = 125f;
         public float yOffset = 0;
-        public float division = 2f;
+        public int division = 2;
         public int gridLineCount = 64;
-        private float mouseWheel;
 
         public ColorF judgementNoteColor = new ColorF(0.8f, 0.8f, 0.8f, 1f);
         public List<CharterNote> notes = new List<CharterNote>();
 
+        private float mouseWheel;
+        public const float xSpacing = 32f;
         public CharterScene() {}
 
         public override void Init()
@@ -68,10 +66,6 @@ namespace OriNoco.Charter
         {
             UpdateScroll();
             ReadInputs();
-        }
-
-        public override void DrawGUI()
-        {
         }
 
         public void ReadInputs()
@@ -153,7 +147,7 @@ namespace OriNoco.Charter
             return note;
         }
 
-        public CharterNote[] EvaulateDirectionToCreateNote(Direction direction, float time, bool refresh = false)
+        public CharterNote[] EvaluateDirectionToCreateNote(Direction direction, float time, bool refresh = false)
         {
             switch (direction)
             {
@@ -268,6 +262,8 @@ namespace OriNoco.Charter
 
         public override void Draw()
         {
+            if (!Core.IsProjectOpen) return;
+
             int xPosition = Window.GetScreenWidth() - 300;
             Graphics.BeginScissorMode(xPosition, 0, 300, Window.GetScreenHeight());
 

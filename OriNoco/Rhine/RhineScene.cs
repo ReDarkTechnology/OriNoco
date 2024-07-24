@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Text.Json.Serialization;
 using ImGuiNET;
 using OriNoco.Serializer;
 using Raylib_CSharp;
@@ -13,6 +12,7 @@ using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
 using Point = System.Drawing.Point;
 using OriNoco.Data;
+using SharpFileDialog;
 
 namespace OriNoco.Rhine
 {
@@ -23,7 +23,9 @@ namespace OriNoco.Rhine
         public bool showNoteCount = true;
         public bool showFPS = true;
         public bool showTime = true;
+        public bool showProjectInfo;
         public bool adjustToGrid = true;
+        bool initSize;
 
         public bool unlockBreakingChanges = false;
 
@@ -35,7 +37,9 @@ namespace OriNoco.Rhine
 
         public PredictableLane lane = new();
 
+        public Music defaultMusic;
         public Music music;
+
         public float fontSize = 20;
         public float followSpeed = 1.5f;
 
@@ -46,8 +50,6 @@ namespace OriNoco.Rhine
 
         public Font mainFont;
 
-        public string? filePath = null;
-        public ChartData data = new();
         public List<RhineNote> notes = [];
         public string?[] debugInfo = new string?[3]; 
         #endregion
@@ -70,8 +72,14 @@ namespace OriNoco.Rhine
             player.LoadTexture();
             noteDrawable.Texture = TextureDictionary.note;
             noteDrawable.Scale = new Vector2(0.2f);
-            music = Music.Load("Sounds/NULL APOPHENIA.ogg");
+            defaultMusic = Music.Load("Sounds/RhineTheme.mp3");
+            music = defaultMusic;
             mainFont = FontsDictionary.GeoSansLight;
+
+            showFPS = Settings.Data.ShowFPS;
+            showTime = Settings.Data.ShowTime;
+            showNoteCount = Settings.Data.ShowNoteCount;
+            showProperties = Settings.Data.ShowProperties;
         }
 
         public override void Update()
@@ -100,12 +108,20 @@ namespace OriNoco.Rhine
 
         public override void Draw()
         {
+            if (Core.IsProjectOpen)
+                DrawNormal();
+            else
+                DrawClear();
+        }
+
+        public void DrawNormal()
+        {
             Graphics.BeginScissorMode(viewportOffset.X, viewportOffset.Y, Window.GetScreenWidth() - viewportScaleOffset.X, Window.GetScreenHeight() - viewportScaleOffset.Y);
-            Graphics.ClearBackground(backgroundColor);
-            
+            Graphics.ClearBackground(Core.Info.BackgroundColor);
+
             Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 5, Color.White);
             debugInfo[0] = showFPS ? $"FPS: {Time.GetFPS()}" : null;
-            debugInfo[1] = showNoteCount ? $"Notes: {notes.Count}" : null;;
+            debugInfo[1] = showNoteCount ? $"Notes: {notes.Count}" : null; ;
             debugInfo[2] = showTime ? $"Time: {Core.Time}" : null;
 
             int offset = 50;
@@ -126,6 +142,11 @@ namespace OriNoco.Rhine
             player.Draw();
             viewport.End();
             Graphics.EndScissorMode();
+        }
+
+        public void DrawClear()
+        {
+            Graphics.ClearBackground(Core.Info.BackgroundColor);
         }
 
         public override Vector2 GetViewportSize()
@@ -182,6 +203,9 @@ namespace OriNoco.Rhine
 
             int index = lane.GetChangeIndexFromTime(Core.Time);
             player.speed = index >= 0 ? lane.changes[index].rate : lane.initialRate;
+
+            foreach (var note in notes)
+                note.Update(Core.Time);
         }
 
         public bool IsDirectoryWritable(string dirPath, bool throwIfFails = false)
@@ -291,8 +315,16 @@ namespace OriNoco.Rhine
         #region GUI
         public override void DrawGUI()
         {
-            DrawMenuBar();
-            DrawProperties();
+            if (Core.IsProjectOpen)
+            {
+                DrawMenuBar();
+                DrawProperties();
+                DrawProjectInfo();
+            }
+            else
+            {
+                DrawProjectPanel();
+            }
         }
 
         public void DrawMenuBar()
@@ -303,17 +335,7 @@ namespace OriNoco.Rhine
                 {
                     if (ImGui.MenuItem("New"))
                     {
-                        Program.Charter.lane = new RhythmLane();
-                        Program.Charter.notes.Clear();
-
-                        Core.Time = 0f;
-                        notes.Clear();
-                        UpdatePlayerPosition();
-                        lane = new PredictableLane();
-
-                        Program.Charter.PostScrollUpdate();
-
-                        Window.SetTitle("OriNoco - None");
+                        ResetScene();
                     }
 
                     if (ImGui.MenuItem("Open"))
@@ -324,10 +346,15 @@ namespace OriNoco.Rhine
 
                     if (ImGui.MenuItem("Save"))
                     {
+                        Save();
                     }
 
-                    if (ImGui.MenuItem("Save As..."))
+                    if (Directory.Exists(Core.FilePath))
                     {
+                        if (ImGui.MenuItem("Save As..."))
+                        {
+                            SaveAs();
+                        }
                     }
 
                     ImGui.Separator();
@@ -350,15 +377,33 @@ namespace OriNoco.Rhine
 
                 if (ImGui.BeginMenu("View"))
                 {
-                    ImGui.MenuItem("FPS", string.Empty, ref showFPS);
-                    ImGui.MenuItem("Note Count", string.Empty, ref showNoteCount);
-                    ImGui.MenuItem("Time", string.Empty, ref showTime);
-                    ImGui.MenuItem("Properties", string.Empty, ref showProperties);
-
-                    if(ImGui.MenuItem("Message Box Test"))
+                    if (ImGui.MenuItem("FPS", string.Empty, ref showFPS))
                     {
-                        MessageBox.Show("This is a cross-platform message box test!", "Info", MessageBoxType.Ok, MessageBoxIcon.None);
+                        Settings.Data.ShowFPS = showFPS;
+                        Settings.Save();
                     }
+
+                    if (ImGui.MenuItem("Note Count", string.Empty, ref showNoteCount))
+                    {
+                        Settings.Data.ShowNoteCount = showNoteCount;
+                        Settings.Save();
+                    }
+
+                    if (ImGui.MenuItem("Time", string.Empty, ref showTime))
+                    {
+                        Settings.Data.ShowTime = showTime;
+                        Settings.Save();
+                    }
+
+                    if (ImGui.MenuItem("Properties", string.Empty, ref showProperties))
+                    {
+                        Settings.Data.ShowProperties = showProperties;
+                        Settings.Save();
+                    }
+
+                    if (ImGui.MenuItem("Project Info"))
+                        showProjectInfo = true;
+
                     ImGui.EndMenu();
                 }
             }
@@ -374,7 +419,7 @@ namespace OriNoco.Rhine
             GUI.SetNextWindowSize(new Vector2(size.X, 300));
             GUI.BeginWindow("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
             {
-                if (ImGui.SliderFloat("Time", ref Core.Time, 0f, 480f))
+                if (ImGui.SliderFloat("Time", ref Core.Time, 0f, music.GeTimeLength()))
                 {
                     if (adjustToGrid)
                         Core.Time = Program.Charter.lane.AdjustTimeToRate(Core.Time, Program.Charter.division);
@@ -450,7 +495,7 @@ namespace OriNoco.Rhine
                             UpdateNotesFromIndex(0);
                         }
 
-                        bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, 12f) || unlockBreakingChanges;
+                        bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, Program.Charter.division) || unlockBreakingChanges;
 
                         if (!isAllowed)
                         {
@@ -481,7 +526,7 @@ namespace OriNoco.Rhine
                             UpdateNotesFromIndex(0);
                         }
 
-                        bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, 12f) || unlockBreakingChanges;
+                        bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, Program.Charter.division) || unlockBreakingChanges;
                         if (!isAllowed)
                         {
                             GUI.Text("Putting a BPM change offbeat is not recommended!");
@@ -513,9 +558,7 @@ namespace OriNoco.Rhine
                     ImGui.TableSetColumnIndex(0);
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Charter");
 
-                    GUI.Text("Actual Division: " + divisions[divisionMode]);
-                    if (ImGui.SliderInt("Division Mode", ref divisionMode, 0, divisions.Length - 1))
-                        Program.Charter.division = divisions[divisionMode];
+                    ImGui.SliderInt("Division Mode", ref Program.Charter.division, 2, 13);
 
                     ImGui.SliderInt("Grid Lines Count", ref Program.Charter.gridLineCount, 16, 512, null);
                     ImGui.SliderFloat("Grid Scale", ref Program.Charter.yScale, 50f, 1000f);
@@ -523,6 +566,160 @@ namespace OriNoco.Rhine
                 }
             }
             GUI.EndWindow();
+        }
+
+        public void DrawProjectInfo()
+        {
+            if (!showProjectInfo) return;
+
+            Vector2 size = new Vector2(640f, 360f);
+            ImGui.SetNextWindowSize(size, ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos((Game.WindowSizeF - size) / 2f, ImGuiCond.FirstUseEver);
+            GUI.BeginWindow("Project Info", ref showProjectInfo);
+            {
+                GUI.Text($"Directory Path: {Core.DirectoryPath}");
+                GUI.Text($"File Path: {Core.FilePath}");
+
+                GUI.Separator();
+
+                Core.Info.Name = GUI.InputText("Chart Codename", Core.Info.Name, 256);
+                Core.Info.DisplayName = GUI.InputText("Display Name", Core.Info.DisplayName, 256);
+
+                GUI.Separator();
+
+                Core.Info.AudioName = GUI.InputText("Audio Name", Core.Info.AudioName, 256);
+                Core.Info.AudioComposer = GUI.InputText("Audio Composer", Core.Info.AudioComposer, 256);
+                Core.Info.AudioOffset = GUI.InputFloat("Audio Offset", Core.Info.AudioOffset);
+
+                GUI.Separator();
+
+                Core.Info.LevelDifficulty = GUI.InputFloat("Level Difficulty", Core.Info.LevelDifficulty);
+                Core.Info.LevelSet = GUI.ComboBox("Level Set", Core.Info.LevelSet);
+
+                GUI.Separator();
+
+                Core.Info.BackgroundColor = GUI.ColorEdit4("Background Color", Core.Info.BackgroundColor);
+            }
+            GUI.EndWindow();
+        }
+
+        public void DrawProjectPanel()
+        {
+            Vector2 defaultSize = Game.WindowSizeF - new Vector2(20f, 20f);
+            ImGui.SetNextWindowSize(defaultSize, ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos((Game.WindowSizeF - defaultSize) / 2f, ImGuiCond.FirstUseEver);
+            GUI.BeginWindow("Projects");
+            {
+                GUI.Text("Unfinished");
+            }
+            GUI.EndWindow();
+        }
+        #endregion
+        #region Project File IO
+        public void Open()
+        {
+            if (NativeFileDialog.PickFolder(null, out string? path))
+            {
+                Core.DirectoryPath = path;
+                Core.FilePath = Path.Combine(path, "chart.orinoco");
+
+                if (File.Exists(Core.FilePath))
+                {
+
+                }
+                else
+                {
+                    MessageBox.Show("This folder doesn't have any chart!", "Error", MessageBoxType.Ok, MessageBoxIcon.Error);
+                }
+                //var oriNocoFiles = Directory.EnumerateFiles(path, "*.orinoco");
+            }
+        }
+
+        public void SaveAs()
+        {
+            var filters = new NativeFileDialog.Filter[]
+            {
+                new() { Name = "OriNoco Chart (*.orinoco)", Extensions = [ "orinoco" ] },
+                new() { Name = "All Files", Extensions = [ "*" ] }
+            };
+
+            if (NativeFileDialog.SaveDialog(filters, null, out string? path))
+            {
+                Console.WriteLine(path);
+                SaveToPath(path);
+
+                Core.DirectoryPath = Path.GetDirectoryName(path);
+                Core.FilePath = path;
+            }
+        }
+
+        public void Save()
+        {
+            if (File.Exists(Core.FilePath))
+                SaveToPath(Core.FilePath);
+            else
+                SaveAs();
+        }
+
+        public void SaveToPath(string path) => File.WriteAllText(path, MainSerializer.Serialize(GetChartData()));
+        public ChartData GetChartData()
+        {
+            var data = new ChartData()
+            {
+                Info = Core.Info,
+                Speed = lane.initialRate,
+                BPM = Program.Charter.lane.initialBPM
+            };
+
+            foreach (var change in lane.changes)
+                data.Speeds.Add(new SpeedData(change));
+
+            foreach (var bpm in Program.Charter.lane.changes)
+                data.BPMs.Add(new BPMData(bpm));
+
+            foreach (var note in notes)
+                data.Notes.Add(new NoteData(note));
+
+            return data;
+        }
+
+        public void LoadChartData(ChartData data)
+        {
+            ResetScene();
+
+            Core.Info = data.Info;
+            Program.Charter.lane.initialRate = data.Speed;
+            Program.Charter.lane.initialBPM = data.BPM;
+
+            foreach (var speed in data.Speeds)
+                lane.Add(speed.Time, speed.Speed);
+
+            foreach (var bpm in data.BPMs)
+                Program.Charter.lane.Add(bpm.Time, 60f / bpm.BPM);
+
+            foreach (var note in data.Notes)
+            {
+                CreateNote(note.Type, note.Direction, note.Time, note.Position);
+                Program.Charter.EvaluateDirectionToCreateNote(note.Direction, note.Time);
+            }
+        }
+
+        public void ResetScene()
+        {
+            Program.Charter.lane = new RhythmLane();
+            Program.Charter.notes.Clear();
+
+            Core.Info = new ChartInfoData();
+            Core.DirectoryPath = null;
+            Core.FilePath = null;
+            Core.Time = 0f;
+            notes.Clear();
+            UpdatePlayerPosition();
+            lane = new PredictableLane();
+
+            Program.Charter.PostScrollUpdate();
+
+            Window.SetTitle("OriNoco - None");
         }
         #endregion
     }
