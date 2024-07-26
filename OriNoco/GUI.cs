@@ -152,6 +152,19 @@ namespace OriNoco
             return value;
         }
 
+        public static bool InputInt(string label, int value, out float result)
+        {
+            bool changed = ImGui.InputInt(label, ref value);
+            result = value;
+            return changed;
+        }
+
+        public static int InputInt(string label, int value)
+        {
+            ImGui.InputInt(label, ref value);
+            return value;
+        }
+
         public static bool ColorButton(string label, ColorF value) =>
             ImGui.ColorButton(label, new Vector4(value.R, value.G, value.B, value.A));
 

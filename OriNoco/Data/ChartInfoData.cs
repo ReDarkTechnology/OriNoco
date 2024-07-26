@@ -57,6 +57,8 @@ namespace OriNoco.Data
         public bool IsLockLevel { get; set; }
         [JsonPropertyName("lockMode")]
         public LockType LockMode { get; set; }
+        [JsonPropertyName("requiredLevelName")]
+        public string? RequiredLevelName { get; set; }
         [JsonPropertyName("requiredAmount")]
         public int RequiredAmount { get; set; }
     }

@@ -7,7 +7,11 @@ using OriNoco.Rhine;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Interact;
 using Raylib_CSharp.Rendering;
+using Raylib_CSharp.Transformations;
 using Raylib_CSharp.Windowing;
+
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
 namespace OriNoco.Charter
 {
@@ -27,9 +31,13 @@ namespace OriNoco.Charter
         public RhythmLane lane = new();
         public TextureDrawable rightActive = new(default);
 
-        public float yScale = 125f;
+        public Point viewportPosition = new Point();
+        public Size viewportSize = new Size();
+        public Rectangle viewportRect = new Rectangle();
+
+        public float yScale = 75f;
         public float yOffset = 0;
-        public int division = 2;
+        public int division = 4;
         public int gridLineCount = 64;
 
         public ColorF judgementNoteColor = new ColorF(0.8f, 0.8f, 0.8f, 1f);
@@ -66,6 +74,17 @@ namespace OriNoco.Charter
         {
             UpdateScroll();
             ReadInputs();
+
+            viewportPosition.X = Window.GetScreenWidth() - 300;
+            viewportPosition.Y = 20;
+
+            viewportSize.Width = 300;
+            viewportSize.Height = Window.GetScreenHeight() - 20;
+
+            viewportRect.X = viewportPosition.X;
+            viewportRect.Y = viewportPosition.Y;
+            viewportRect.Width = viewportSize.Width;
+            viewportRect.Height = viewportSize.Height;
         }
 
         public void ReadInputs()
@@ -264,8 +283,7 @@ namespace OriNoco.Charter
         {
             if (!Core.IsProjectOpen) return;
 
-            int xPosition = Window.GetScreenWidth() - 300;
-            Graphics.BeginScissorMode(xPosition, 0, 300, Window.GetScreenHeight());
+            Graphics.BeginScissorMode(viewportPosition.X, viewportPosition.Y, viewportSize.Width, viewportSize.Height);
 
             Graphics.ClearBackground(new ColorF(0.1f, 0.1f, 0.1f));
 
@@ -295,6 +313,12 @@ namespace OriNoco.Charter
                 note.Draw();
 
             Graphics.EndScissorMode();
+        }
+
+        public bool IsMouseOverRect(Rectangle rectangle)
+        {
+            Vector2 mousePosition = Input.GetMousePosition();
+            return RectUtil.PointInsideRect(viewportRect, mousePosition) && RectUtil.PointInsideRect(rectangle, mousePosition);
         }
 
         public override Vector2 GetViewportSize() =>  

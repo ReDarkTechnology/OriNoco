@@ -1,6 +1,7 @@
 ﻿using OriNoco.Tweening;
 using Raylib_CSharp;
 using Raylib_CSharp.Colors;
+using Raylib_CSharp.Transformations;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -15,9 +16,11 @@ namespace OriNoco.Rhine
         public Direction direction = Direction.Up;
 
         public float time = 0f;
+        public bool persistPosition;
 
         public TextureDrawable note;
         public TextureDrawable arrow;
+        public Rectangle noteRect;
 
         public List<Particle> particles = new List<Particle>();
 
@@ -35,6 +38,11 @@ namespace OriNoco.Rhine
             note.Rotation = 0f;
             note.Scale = new Vector2(scale, scale);
 
+            noteRect.X = position.X;
+            noteRect.Y = position.Y;
+            noteRect.Width = note.Texture.Width / note.PixelsPerUnit * scale;
+            noteRect.Height = note.Texture.Height / note.PixelsPerUnit * scale;
+
             arrow.Position = position;
             arrow.Rotation = direction.ToRotation();
             arrow.Scale = new Vector2(scale, scale);
@@ -49,12 +57,30 @@ namespace OriNoco.Rhine
         public void Update(float time)
         {
             if(time > this.time)
-                note.Color = Color.Yellow;
+                note.Color = Core.NoteSelectedColor;
             else
-                note.Color = Color.White;
+                note.Color = Core.NoteColor;
+
+            UpdateMouseHover();
 
             foreach (var particle in particles)
                 particle.Move(note.Position, Math.Clamp(time - this.time, 0f, particleDuration) / particleDuration);
+        }
+
+        public void UpdateMouseHover()
+        {
+            if (Program.Rhine.IsMouseOverRect(noteRect))
+            {
+                if (Program.Rhine.selectedNote == this)
+                    note.Color = Core.NoteSelectedHoverColor;
+                else
+                    note.Color = Core.NoteHoverColor;
+            }
+            else
+            {
+                if (Program.Rhine.selectedNote == this)
+                    note.Color = Core.NoteSelectedColor;
+            }
         }
 
         public void Draw()
