@@ -67,5 +67,10 @@ namespace OriNoco
         {
             return camera2D.GetWorldToScreen(position.InvertY());
         }
+
+        public Vector2 GetScreenToWorld(Vector2 position)
+        {
+            return camera2D.GetScreenToWorld(position);
+        }
     }
 }

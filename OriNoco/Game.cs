@@ -11,6 +11,7 @@ using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Windowing;
 using OriNoco.Tweening;
 using System.Numerics;
+using OriNoco.UI;
 
 namespace OriNoco
 {
@@ -26,12 +27,15 @@ namespace OriNoco
             }
         }
 
+        private static Point _PreviousSize = new Point(1280, 720);
+
         public static Vector2 WindowSizeF
         {
             get => new(Window.GetScreenWidth(), Window.GetScreenHeight());
             set { Window.SetSize((int)value.X, (int)value.Y); }
         }
 
+        public static bool StopRunning;
         public static List<Scene> Scenes { get; private set; } = new List<Scene>();
 
         public static void Start()
@@ -54,20 +58,36 @@ namespace OriNoco
                     AudioDevice.SetMasterVolume(1f);
                     rlImGui.Setup(true);
                     {
+                        Core.Init();
                         foreach (var scene in Scenes)
                             scene.Init();
 
-                        while (!Window.ShouldClose())
+                        while (!Window.ShouldClose() && !StopRunning)
                         {
+                            if (_PreviousSize != WindowSize)
+                            {
+                                _PreviousSize = WindowSize;
+                                _WindowSize = new Point(Window.GetScreenWidth(), Window.GetScreenHeight());
+
+                                foreach (var scene in Scenes)
+                                    scene.OnWindowResized();
+                            }
+
                             GUI.StartUpdate();
                             ETween.Update();
+                            DelayUtil.Update();
+
                             foreach (var scene in Scenes) scene.Update();
 
                             Graphics.BeginDrawing();
                             foreach (var scene in Scenes) scene.Draw();
 
                             GUI.Begin();
+                            MenuBar.Draw();
                             foreach (var scene in Scenes) scene.DrawGUI();
+                            ProjectInfoWindow.Draw();
+                            NewProjectWindow.Draw();
+                            ProjectsWindow.Draw();
                             GUI.End();
 
                             foreach (var scene in Scenes) scene.PostRender();

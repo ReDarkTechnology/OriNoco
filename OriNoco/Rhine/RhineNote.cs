@@ -1,9 +1,11 @@
 ﻿using OriNoco.Tweening;
 using Raylib_CSharp;
 using Raylib_CSharp.Colors;
+using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Transformations;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace OriNoco.Rhine
@@ -16,6 +18,7 @@ namespace OriNoco.Rhine
         public Direction direction = Direction.Up;
 
         public float time = 0f;
+        private float currentTime;
         public bool persistPosition;
 
         public TextureDrawable note;
@@ -38,10 +41,10 @@ namespace OriNoco.Rhine
             note.Rotation = 0f;
             note.Scale = new Vector2(scale, scale);
 
-            noteRect.X = position.X;
-            noteRect.Y = position.Y;
             noteRect.Width = note.Texture.Width / note.PixelsPerUnit * scale;
             noteRect.Height = note.Texture.Height / note.PixelsPerUnit * scale;
+            noteRect.X = position.X - noteRect.Width / 2f;
+            noteRect.Y = -position.Y - noteRect.Height / 2f;
 
             arrow.Position = position;
             arrow.Rotation = direction.ToRotation();
@@ -56,31 +59,49 @@ namespace OriNoco.Rhine
 
         public void Update(float time)
         {
-            if(time > this.time)
-                note.Color = Core.NoteSelectedColor;
-            else
-                note.Color = Core.NoteColor;
-
-            UpdateMouseHover();
-
+            currentTime = time;
             foreach (var particle in particles)
                 particle.Move(note.Position, Math.Clamp(time - this.time, 0f, particleDuration) / particleDuration);
         }
 
-        public void UpdateMouseHover()
+        public void UpdateNoteColor()
         {
-            if (Program.Rhine.IsMouseOverRect(noteRect))
+            if (time > currentTime)
             {
-                if (Program.Rhine.selectedNote == this)
-                    note.Color = Core.NoteSelectedHoverColor;
+                if (Program.Rhine.IsMouseOverRect(noteRect))
+                {
+                    if (Program.Rhine.selectedNote == this)
+                        note.Color = Core.NoteSelectedHoverColor;
+                    else
+                        note.Color = Core.NoteHoverColor;
+                }
                 else
-                    note.Color = Core.NoteHoverColor;
+                {
+                    if (Program.Rhine.selectedNote == this)
+                        note.Color = Core.NoteSelectedColor;
+                    else
+                        note.Color = Core.NoteColor;
+                }
             }
             else
             {
-                if (Program.Rhine.selectedNote == this)
-                    note.Color = Core.NoteSelectedColor;
+                if (Program.Rhine.IsMouseOverRect(noteRect))
+                {
+                    if (Program.Rhine.selectedNote == this)
+                        note.Color = Core.NoteSelectedHoverColor;
+                    else
+                        note.Color = Core.NoteHoverColor;
+                }
+                else
+                {
+                    note.Color = Core.NotePassedColor;
+                }
             }
+        }
+
+        public bool IsMouseOverNote()
+        {
+            return Program.Rhine.IsMouseOverRect(noteRect);
         }
 
         public void Draw()

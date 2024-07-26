@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace OriNoco.Serializer
 {
@@ -9,7 +10,8 @@ namespace OriNoco.Serializer
             return JsonSerializer.Serialize(obj, new JsonSerializerOptions() { 
                 WriteIndented = indented,
                 Converters = {
-                    new Vector2Serializer()
+                    new Vector2Serializer(),
+                    new ColorFSerializer()
                 }
             });
         }
@@ -18,8 +20,11 @@ namespace OriNoco.Serializer
         {
             return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions() { 
                 Converters = {
-                    new Vector2Serializer()
-                }
+                    new Vector2Serializer(),
+                    new ColorFSerializer()
+                },
+                WriteIndented = true,
+                UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip
             });
         }
     }

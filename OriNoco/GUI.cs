@@ -9,6 +9,7 @@ namespace OriNoco
     {
         public static void Begin() => rlImGui.Begin();
         public static void End() => rlImGui.End();
+        public static bool IsEditing() => ImGui.IsAnyItemActive();
 
         public static bool Toggle(string label, bool value) => Checkbox(label, value);
         public static bool Checkbox(string label, bool value)

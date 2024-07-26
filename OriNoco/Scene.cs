@@ -45,5 +45,7 @@ namespace OriNoco
         /// Gets the viewport offset, also used for Viewport2D and Viewport3D
         /// </summary>
         public virtual Vector2 GetViewportOffset() => Vector2.Zero;
+
+        public virtual void OnWindowResized()  {}
     }
 }

@@ -101,6 +101,8 @@ namespace OriNoco.Charter
 
         public void OnActionPressed(Direction direction)
         {
+            if (GUI.IsEditing()) return;
+
             var existingNotes = FindNotesAtTime(Core.Time);
             if (existingNotes.Count > 0)
             {
