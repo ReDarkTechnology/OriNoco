@@ -42,9 +42,13 @@ namespace OriNoco.Rhine
 
         public Music defaultMusic;
         public Music music;
+        public Sound hitSound;
 
         public float fontSize = 20;
         public float followSpeed = 1.5f;
+
+        private float previousTime;
+        private bool enterKeyPlaymode;
 
         public Point viewportOffset = new(0, 20);
         public Point viewportScaleOffset = new(300, 320);
@@ -82,22 +86,30 @@ namespace OriNoco.Rhine
             noteDrawable.Scale = new Vector2(0.2f);
 
             defaultMusic = Music.Load("Sounds/RhineTheme.mp3");
+            hitSound = Sound.Load("Sounds/Hit.ogg");
             music = defaultMusic;
 
             mainFont = FontsDictionary.GeoSansLight;
             showProperties = Settings.Data.ShowProperties;
 
             OnWindowResized();
+            UpdateViewport();
         }
 
         public override void Update()
         {
-            if (player.IsStarted)
+            UpdateHotKeys();
+
+            if (Core.IsPlaying)
             {
-                Core.Time += Time.GetFrameTime();
-                music.UpdateStream();
+                if (Core.Time <= music.GeTimeLength())
+                {
+                    Core.Time += Time.GetFrameTime();
+                    music.UpdateStream();
+
+                    Program.Charter.PostScrollUpdate();
+                }
             }
-            player.Update();
 
             viewport.Position = Vector2.Lerp(viewport.Position, player.drawable.Position, followSpeed * Time.GetFrameTime());
             viewport.Update();
@@ -116,6 +128,50 @@ namespace OriNoco.Rhine
 
             foreach (var note in notes)
                 note.UpdateNoteColor();
+        }
+
+        public void UpdateHotKeys()
+        {
+            if (GUI.IsEditing()) return;
+
+            if (Input.IsKeyPressed(KeyboardKey.Space) && !enterKeyPlaymode)
+                Play();
+
+            if (Input.IsKeyReleased(KeyboardKey.Space) && !enterKeyPlaymode)
+                Stop();
+
+            if (Input.IsKeyPressed(KeyboardKey.Enter))
+            {
+                if (Core.IsPlaying)
+                {
+                    if (enterKeyPlaymode)
+                    {
+                        Stop();
+                        enterKeyPlaymode = false;
+                    }
+                }
+                else
+                {
+                    Play();
+                    enterKeyPlaymode = true;
+                }
+            }
+        }
+
+        public void Play()
+        {
+            previousTime = Core.Time;
+            Core.IsPlaying = true;
+            music.SeekStream(Core.Time);
+            music.PlayStream();
+        }
+
+        public void Stop()
+        {
+            Core.IsPlaying = false;
+            Core.Time = previousTime;
+            Program.Charter.PostScrollUpdate();
+            music.StopStream();
         }
 
         public override void Draw()
@@ -359,7 +415,8 @@ namespace OriNoco.Rhine
             var size = GetViewportSize();
             GUI.SetNextWindowPos(new Vector2(0, size.Y + 20));
             GUI.SetNextWindowSize(new Vector2(size.X, 300));
-            GUI.BeginWindow("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+            if (ImGui.Begin("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse))
+                MenuBar.ChangeProperties();
             {
                 if (ImGui.SliderFloat("Time", ref Core.Time, 0f, music.GeTimeLength()))
                 {
@@ -375,6 +432,7 @@ namespace OriNoco.Rhine
                     ImGui.TableNextRow();
                     ImGui.TableSetColumnIndex(0);
 
+                    // --------------- SPEED ----------------
                     ImGui.PushID("Speed");
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Player Speed");
                     var change = lane.GetChangeFromTime(Core.Time);
@@ -420,6 +478,7 @@ namespace OriNoco.Rhine
                     }
                     ImGui.PopID();
 
+                    // --------------- BPM ----------------
                     ImGui.TableSetColumnIndex(1);
                     ImGui.PushID("BPM");
                     GUI.TextColored(new(0f, 1f, 0f, 1f), "Rhythm");
@@ -503,11 +562,25 @@ namespace OriNoco.Rhine
                     ImGui.SliderInt("Division Mode", ref Program.Charter.division, 2, 13);
 
                     ImGui.SliderInt("Grid Lines Count", ref Program.Charter.gridLineCount, 16, 512, null);
-                    ImGui.SliderFloat("Grid Scale", ref Program.Charter.yScale, 50f, 1000f);
+                    if(ImGui.SliderFloat("Grid Scale", ref Program.Charter.yScale, 50f, 1000f)) Program.Charter.UpdateNotePositions();
                     ImGui.EndTable();
                 }
             }
             GUI.EndWindow();
+        }
+
+        public void UpdateViewport()
+        {
+            if (Program.Rhine.showProperties)
+            {
+                Program.Rhine.viewportOffset = new(0, 20);
+                Program.Rhine.viewportScaleOffset = new(300, 320);
+            }
+            else
+            {
+                Program.Rhine.viewportOffset = new(0, 20);
+                Program.Rhine.viewportScaleOffset = new(300, 20);
+            }
         }
         #endregion
         #region Project File IO
@@ -546,8 +619,26 @@ namespace OriNoco.Rhine
             ResetScene();
 
             Core.Info = data.Info;
-            Program.Charter.lane.initialRate = data.Speed;
+            lane.initialRate = data.Speed;
             Program.Charter.lane.initialBPM = data.BPM;
+
+            if (Core.DirectoryPath != null)
+            {
+                if (File.Exists(Path.Combine(Core.DirectoryPath, Core.Info.AudioPath)))
+                {
+                    if (music.GetHashCode() != defaultMusic.GetHashCode())
+                    {
+                        if (music.IsReady())
+                            music.UnloadStream();
+                    }
+
+                    music = Music.Load(Path.Combine(Core.DirectoryPath, Core.Info.AudioPath));
+                }
+                else
+                {
+                    music = defaultMusic;
+                }
+            }
 
             foreach (var speed in data.Speeds)
                 lane.Add(speed.Time, speed.Speed);

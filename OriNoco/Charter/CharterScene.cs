@@ -159,6 +159,9 @@ namespace OriNoco.Charter
 
         public CharterNote CreateNote(Direction direction, float time, bool refresh = true)
         {
+            if (Program.Rhine.adjustToGrid)
+                time = lane.AdjustTimeToRate(time, division);
+
             var note = new CharterNote(this, time, direction);
             note.UpdatePosition();
             notes.Add(note);

@@ -17,6 +17,8 @@ namespace OriNoco
         public static string? DirectoryPath = null;
         public static string? FilePath => DirectoryPath != null ? Path.Combine(DirectoryPath, "chart.orinoco") : null;
 
+        public static bool IsPlaying;
+
         public static ColorF NotePassedColor = Color.Yellow;
         public static ColorF NoteSelectedHoverColor = new ColorF(0.8f, 1f, 1f);
         public static ColorF NoteSelectedColor = new ColorF(0.8f, 1f, 0.8f);

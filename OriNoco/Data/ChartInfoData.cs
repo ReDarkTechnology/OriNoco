@@ -8,16 +8,18 @@ namespace OriNoco.Data
     public class ChartInfoData
     {
         [JsonPropertyName("name")]
-        public string? Name { get; set; } = "untitled_level";
+        public string Name { get; set; } = "untitled_level";
         [JsonPropertyName("displayName")]
-        public string? DisplayName { get; set; } = "Untitled";
+        public string DisplayName { get; set; } = "Untitled";
         [JsonPropertyName("author")]
-        public string? Author { get; set; } = "Unknown";
+        public string Author { get; set; } = "Unknown";
 
         [JsonPropertyName("audioName")]
-        public string? AudioName { get; set; } = "Unnamed";
+        public string AudioName { get; set; } = "Unnamed";
+        [JsonPropertyName("audioPath")]
+        public string AudioPath { get; set; } = "";
         [JsonPropertyName("audioComposer")]
-        public string? AudioComposer { get; set; } = "Unknown";
+        public string AudioComposer { get; set; } = "Unknown";
         [JsonPropertyName("syncOffset")]
         public float AudioOffset { get; set; }
         [JsonPropertyName("composerSocials")]
@@ -36,20 +38,20 @@ namespace OriNoco.Data
         public float OrthographicSize { get; set; } = 5f;
 
         [JsonPropertyName("globalSpriteColor")]
-        public ColorF GlobalSpriteColor { get; set; } = new ColorF(1f, 1f, 1f);
+        public ColorF GlobalSpriteColor { get; set; } = new ColorF(1f);
         [JsonPropertyName("invertedColors")]
         public bool InvertedColors { get; set; }
 
         [JsonPropertyName("backgroundColor")]
-        public ColorF BackgroundColor { get; set; }
+        public ColorF BackgroundColor { get; set; } = new ColorF(0f);
         [JsonPropertyName("lineColor")]
-        public ColorF LineColor { get; set; }
+        public ColorF LineColor { get; set; } = new ColorF(1f);
         [JsonPropertyName("particleColor")]
-        public ColorF ParticleColor { get; set; }
+        public ColorF ParticleColor { get; set; } = new ColorF(0.3113208f);
         [JsonPropertyName("gradientColor")]
-        public ColorF GradientColor { get; set; }
+        public ColorF GradientColor { get; set; } = new ColorF(0f);
         [JsonPropertyName("textColor")]
-        public ColorF TextColor { get; set; }
+        public ColorF TextColor { get; set; } = new ColorF(1f);
         [JsonPropertyName("firefliesColor")]
         public ColorF FirefliesColor { get; set; }
 
@@ -58,7 +60,7 @@ namespace OriNoco.Data
         [JsonPropertyName("lockMode")]
         public LockType LockMode { get; set; }
         [JsonPropertyName("requiredLevelName")]
-        public string? RequiredLevelName { get; set; } = "None";
+        public string RequiredLevelName { get; set; } = "None";
         [JsonPropertyName("requiredAmount")]
         public int RequiredAmount { get; set; }
     }

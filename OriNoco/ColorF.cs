@@ -9,6 +9,14 @@ namespace OriNoco
         public float B;
         public float A;
 
+        public ColorF(float value)
+        {
+            R = value;
+            G = value;
+            B = value;
+            A = 1f;
+        }
+
         public ColorF(float r, float g, float b)
         {
             R = r;

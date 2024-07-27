@@ -48,12 +48,6 @@ namespace OriNoco.Rhine
 
         public void Update()
         {
-            if (IsStarted)
-            {
-                drawable.Position += direction.ToDirection() * speed * Time.GetFrameTime();
-                trails[trails.Count - 1].Stretch(direction.ToDirection(), speed);
-            }
-
             if (freeplay)
                 UpdateFreeplay();
             else
@@ -81,6 +75,9 @@ namespace OriNoco.Rhine
         {
             if (IsStarted)
             {
+                drawable.Position += direction.ToDirection() * speed * Time.GetFrameTime();
+                trails[trails.Count - 1].Stretch(direction.ToDirection(), speed);
+
                 if (IsControllable)
                 {
                     if (mode == CreateMode.MainAndDiagonals)

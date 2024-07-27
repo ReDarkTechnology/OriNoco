@@ -1,4 +1,7 @@
 ﻿using ImGuiNET;
+using Raylib_CSharp.Audio;
+using SharpFileDialog;
+using System.IO;
 
 namespace OriNoco.UI
 {
@@ -13,8 +16,15 @@ namespace OriNoco.UI
                 if (ImGui.BeginMenu("File"))
                 {
                     if (ImGui.MenuItem("New")) NewProjectWindow.Show();
+
+                    ImGui.Separator();
+
                     if (ImGui.MenuItem("Open")) ProjectsWindow.Show(true, true);
                     if (ImGui.MenuItem("Save")) Program.Rhine.Save();
+
+                    ImGui.Separator();
+
+                    if (ImGui.MenuItem("Change Song")) ChangeSong();
 
                     ImGui.Separator();
 
@@ -51,21 +61,7 @@ namespace OriNoco.UI
                         Settings.Save();
                     }
 
-                    if (ImGui.MenuItem("Properties", string.Empty, ref Program.Rhine.showProperties))
-                    {
-                        Settings.Data.ShowProperties = Program.Rhine.showProperties;
-                        if (Program.Rhine.showProperties)
-                        {
-                            Program.Rhine.viewportOffset = new(0, 20);
-                            Program.Rhine.viewportScaleOffset = new(300, 320);
-                        }
-                        else
-                        {
-                            Program.Rhine.viewportOffset = new(0, 20);
-                            Program.Rhine.viewportScaleOffset = new(300, 20);
-                        }
-                        Settings.Save();
-                    }
+                    if (ImGui.MenuItem("Properties", string.Empty, ref Program.Rhine.showProperties)) ChangeProperties();
 
                     if (ImGui.MenuItem("Project Info")) ProjectInfoWindow.Enabled = true;
 
@@ -73,6 +69,42 @@ namespace OriNoco.UI
                 }
             }
             ImGui.EndMainMenuBar();
+        }
+
+        private static void ChangeSong()
+        {
+            var filter = new NativeFileDialog.Filter() { Name = "Audio Files", Extensions = ["ogg", "mp3"] };
+            var filter2 = new NativeFileDialog.Filter() { Name = "All Files", Extensions = ["*"] };
+            if (NativeFileDialog.OpenDialog([filter, filter2], null, out string? path))
+            {
+                var audio = Music.Load(path);
+                if (audio.IsReady())
+                {
+                    Program.Rhine.music = audio;
+
+                    if (Core.DirectoryPath != null)
+                    {
+                        var adFile = Path.Combine(Core.DirectoryPath, "audio.ogg");
+                        if (File.Exists(adFile)) File.Delete(adFile);
+                        adFile = Path.Combine(Core.DirectoryPath, "audio.mp3");
+                        if (File.Exists(adFile)) File.Delete(adFile);
+
+                        File.Copy(path, Path.Combine(Core.DirectoryPath, "audio" + Path.GetExtension(path)));
+                        Core.Info.AudioPath = "audio" + Path.GetExtension(path);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("This audio file cannot be loaded! (Not Supported, I think)");
+                }
+            }
+        }
+
+        public static void ChangeProperties()
+        {
+            Settings.Data.ShowProperties = Program.Rhine.showProperties;
+            Program.Rhine.UpdateViewport();
+            Settings.Save();
         }
     }
 }

@@ -1,25 +1,28 @@
 ﻿using OriNoco.Tweening;
-using Raylib_CSharp;
 using Raylib_CSharp.Colors;
-using Raylib_CSharp.Rendering;
 using Raylib_CSharp.Transformations;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Numerics;
+using Raylib_CSharp.Audio;
 
 namespace OriNoco.Rhine
 {
     public class RhineNote
     {
-        const float particleDuration = 10f;
+        const float particleDuration = 1f;
 
         public NoteType type = NoteType.Tap;
         public Direction direction = Direction.Up;
 
         public float time = 0f;
         private float currentTime;
+
+        private bool wasHit;
         public bool persistPosition;
+
+        Sound sound;
 
         public TextureDrawable note;
         public TextureDrawable arrow;
@@ -32,7 +35,8 @@ namespace OriNoco.Rhine
             note = new TextureDrawable(TextureDictionary.note);
             arrow = new TextureDrawable(TextureDictionary.arrow) { Color = Color.Black };
 
-            InitializeParticles(4, -2f, 2f);
+            InitializeParticles(5, -3f, 3f);
+            sound = Program.Rhine.hitSound;
         }
 
         public void AdjustDrawables(Vector2 position, float scale)
@@ -82,9 +86,18 @@ namespace OriNoco.Rhine
                     else
                         note.Color = Core.NoteColor;
                 }
+
+                wasHit = false;
             }
             else
             {
+                if (!wasHit)
+                {
+                    if (Core.IsPlaying)
+                        sound.Play();
+                    wasHit = true;
+                }
+
                 if (Program.Rhine.IsMouseOverRect(noteRect))
                 {
                     if (Program.Rhine.selectedNote == this)
@@ -115,16 +128,20 @@ namespace OriNoco.Rhine
 
         public void InitializeParticles(int amount, float limitMin, float limitMax)
         {
-            var random = new Random();
             for (int i = 0; i < amount; i++)
             {
                 var particle = new Particle
                 {
-                    direction = new Vector2((float)random.NextDouble(), (float)random.NextDouble()),
-                    limit = (float)random.NextDouble() * (limitMax - limitMin) + limitMin
+                    direction = new Vector2(GetRandomNumber(-1f, 1f), GetRandomNumber(-1f, 1f)),
+                    limit = GetRandomNumber(limitMin, limitMax)
                 };
                 particles.Add(particle);
             }
+        }
+
+        public static float GetRandomNumber(float min, float max, int details = 100000)
+        {
+            return RandomNumberGenerator.GetInt32((int)min * details, (int)max * details) / (float)details;
         }
 
         public class Particle
