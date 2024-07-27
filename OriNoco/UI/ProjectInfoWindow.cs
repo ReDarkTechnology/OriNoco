@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using Gtk;
 using ImGuiNET;
 
 namespace OriNoco.UI
@@ -23,7 +25,16 @@ namespace OriNoco.UI
 
                 Core.Info.AudioName = GUI.InputText("Audio Name", Core.Info.AudioName, 256);
                 Core.Info.AudioComposer = GUI.InputText("Audio Composer", Core.Info.AudioComposer, 256);
-                Core.Info.AudioOffset = GUI.InputFloat("Audio Offset", Core.Info.AudioOffset);
+                if(GUI.InputFloat("Audio Offset", Core.Info.AudioOffset, out float result))
+                {
+                    Core.Info.AudioOffset = Math.Max(result, -Program.Rhine.music.GeTimeLength());
+                }
+
+                if (Math.Abs(-Core.Info.AudioOffset - Program.Rhine.music.GeTimeLength()) < Program.TolerableEpsilon)
+                {
+                    GUI.TextColored(new Vector4(1f, 0.7f, 0.7f, 1f), "What is the point of skipping the whole audio?");
+                }
+                GUI.Text("Positive offset results in delayed audio, Negative offset results in audio playing early");
 
                 GUI.Separator();
 

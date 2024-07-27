@@ -46,17 +46,10 @@ namespace OriNoco.UI
                             var directory = Path.GetDirectoryName(path);
                             if (Directory.Exists(directory))
                             {
-                                var newDirectory = Path.Combine(Core.DataDirectory, "Projects", Path.GetFileName(directory));
-
-                                if (Directory.Exists(newDirectory))
-                                {
-                                    newDirectory = Path.Combine(Core.DataDirectory, "Projects", Path.GetRandomFileName());
-                                    Core.CopyDirectory(directory, newDirectory, true);
-                                }
+                                var newDirectory = Core.GetFreeDirectoryInProjects(Path.GetFileName(directory));
 
                                 Core.CopyDirectory(directory, newDirectory, true);
-                                Program.Rhine.LoadChartData(data);
-                                Core.DirectoryPath = newDirectory;
+                                Program.Rhine.LoadChartData(newDirectory, data);
                                 Core.IsProjectOpen = true;
                                 Enabled = false;
                             }
@@ -87,8 +80,7 @@ namespace OriNoco.UI
                             ChartData? data = MainSerializer.Deserialize<ChartData>(content);
                             if (data != null)
                             {
-                                Program.Rhine.LoadChartData(data);
-                                Core.DirectoryPath = instance.directory;
+                                Program.Rhine.LoadChartData(instance.directory, data);
                                 Core.IsProjectOpen = true;
                                 Window.SetTitle($"OriNoco - {data.Info.Name}");
 
@@ -97,8 +89,12 @@ namespace OriNoco.UI
                             }
                             else
                             {
-                                MessageBox.Show("PANIC-621: Chart file was available but unable to read when being opened");
+                                MessageBox.Show("PANIC-622: Chart file was available but unable to read when being opened");
                             }
+                        }
+                        else
+                        {
+                            MessageBox.Show("PANIC-621: It exists before? Why is it gone now?");
                         }
                     }
                     ImGui.SameLine();

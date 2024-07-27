@@ -37,10 +37,10 @@ namespace OriNoco.Serializer
                             g = reader.GetSingle();
                             break;
                         case "b":
-                            g = reader.GetSingle();
+                            b = reader.GetSingle();
                             break;
                         case "a":
-                            g = reader.GetSingle();
+                            a = reader.GetSingle();
                             break;
                         default:
                             if (options.UnmappedMemberHandling == JsonUnmappedMemberHandling.Disallow)

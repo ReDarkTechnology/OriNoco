@@ -64,6 +64,7 @@ namespace OriNoco.Rhine
 
         public RhineNote? selectedNote;
         public ChartInfoData newChartInfo = new ChartInfoData();
+        public DelayQueue? audioDelayQueue;
         #endregion
         #region Initialization
         public RhineScene()
@@ -102,7 +103,7 @@ namespace OriNoco.Rhine
 
             if (Core.IsPlaying)
             {
-                if (Core.Time <= music.GeTimeLength())
+                if (Core.Time <= (music.GeTimeLength() + Core.Info.AudioOffset))
                 {
                     Core.Time += Time.GetFrameTime();
                     music.UpdateStream();
@@ -162,8 +163,17 @@ namespace OriNoco.Rhine
         {
             previousTime = Core.Time;
             Core.IsPlaying = true;
-            music.SeekStream(Core.Time);
-            music.PlayStream();
+
+            if (Core.Time >= Core.Info.AudioOffset)
+            {
+                music.SeekStream(Core.Time - Core.Info.AudioOffset);
+                music.PlayStream();
+            }
+            else
+            {
+                audioDelayQueue = new DelayQueue(Core.Info.AudioOffset - Core.Time, music.PlayStream);
+                DelayUtil.Queues.Add(audioDelayQueue);
+            }
         }
 
         public void Stop()
@@ -172,6 +182,12 @@ namespace OriNoco.Rhine
             Core.Time = previousTime;
             Program.Charter.PostScrollUpdate();
             music.StopStream();
+
+            if (audioDelayQueue != null)
+            {
+                audioDelayQueue.Cancel();
+                audioDelayQueue = null;
+            }
         }
 
         public override void Draw()
@@ -382,7 +398,7 @@ namespace OriNoco.Rhine
                 var note = notes[index];
 
                 if (index == 0)
-                    note.note.Position = Direction.Up.ToDirection() * lane.GetValueFromTime(note.time);
+                    note.AdjustDrawables(Direction.Up.ToDirection() * lane.GetValueFromTime(note.time), 0.2f);
 
                 Vector2 position = note.note.Position;
                 float previousValue = lane.GetValueFromTime(note.time);
@@ -418,10 +434,32 @@ namespace OriNoco.Rhine
             if (ImGui.Begin("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse))
                 MenuBar.ChangeProperties();
             {
-                if (ImGui.SliderFloat("Time", ref Core.Time, 0f, music.GeTimeLength()))
+                if (ImGui.SliderFloat("Time", ref Core.Time, 0f, music.GeTimeLength() + Core.Info.AudioOffset))
                 {
-                    if (adjustToGrid)
-                        Core.Time = Program.Charter.lane.AdjustTimeToRate(Core.Time, Program.Charter.division);
+                    if (Core.IsPlaying)
+                    {
+                        if (audioDelayQueue != null)
+                        {
+                            audioDelayQueue.Cancel();
+                            audioDelayQueue = null;
+                        }
+
+                        if (Core.Time >= Core.Info.AudioOffset)
+                        {
+                            music.SeekStream(Core.Time - Core.Info.AudioOffset);
+                            music.PlayStream();
+                        }
+                        else
+                        {
+                            audioDelayQueue = new DelayQueue(Core.Info.AudioOffset - Core.Time, music.PlayStream);
+                            DelayUtil.Queues.Add(audioDelayQueue);
+                        }
+                    }
+                    else
+                    {
+                        if (adjustToGrid)
+                            Core.Time = Program.Charter.lane.AdjustTimeToRate(Core.Time, Program.Charter.division);
+                    }
                     Program.Charter.PostScrollUpdate();
                 }
 
@@ -446,6 +484,15 @@ namespace OriNoco.Rhine
                             UpdateNotesFromIndex(0);
                         }
 
+                        if (change.rate > Program.BigNumberLimit)
+                        {
+                            GUI.TextColored(new Vector4(1f, 0.7f, 0.7f, 1f), "This big of a number might be a bad idea...");
+                        }
+                        else if (change.rate == 0f)
+                        {
+                            GUI.TextColored(new Vector4(0.7f, 0.7f, 1f, 1f), "You just froze the player");
+                        }
+
                         if (GUI.Button("Add"))
                         {
                             lane.Add(Core.Time, change.rate);
@@ -467,6 +514,15 @@ namespace OriNoco.Rhine
                         {
                             lane.initialRate = Math.Max(lane.initialRate, 0f);
                             UpdateNotesFromIndex(0);
+                        }
+
+                        if (lane.initialRate > Program.BigNumberLimit)
+                        {
+                            GUI.TextColored(new Vector4(1f, 0.7f, 0.7f, 1f), "This big of a number might be a bad idea...");
+                        }
+                        else if (lane.initialRate == 0f)
+                        {
+                            GUI.TextColored(new Vector4(0.7f, 0.7f, 1f, 1f), "You just froze the player");
                         }
 
                         if (Core.Time <= 0f) ImGui.BeginDisabled();
@@ -614,10 +670,11 @@ namespace OriNoco.Rhine
             return data;
         }
 
-        public void LoadChartData(ChartData data)
+        public void LoadChartData(string directory, ChartData data)
         {
             ResetScene();
 
+            Core.DirectoryPath = directory;
             Core.Info = data.Info;
             lane.initialRate = data.Speed;
             Program.Charter.lane.initialBPM = data.BPM;

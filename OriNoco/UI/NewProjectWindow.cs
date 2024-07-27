@@ -49,22 +49,13 @@ namespace OriNoco.UI
 
         private static void TryCreate()
         {
-            if (AudioPath != null || !File.Exists(AudioPath))
+            if (AudioPath == null || !File.Exists(AudioPath))
             {
                 if (MessageBox.Show("You don't seem to attach any audio file, are you sure you want to chart this way?", "Confirmation", MessageBoxType.YesNo) == Result.No)
                     return;
             }
 
-            var newDirectory = Path.Combine(Core.DataDirectory, "Projects", Core.SanitizeFileName(newChartInfo.Name));
-            if (Directory.Exists(newDirectory))
-            {
-                newDirectory = Path.Combine(Core.DataDirectory, "Projects", Path.GetRandomFileName());
-                Directory.CreateDirectory(newDirectory);
-            }
-            else
-            {
-                Directory.CreateDirectory(newDirectory);
-            }
+            var newDirectory = Core.GetFreeDirectoryInProjects(Core.SanitizeFileName(newChartInfo.Name));
 
             if (AudioPath != null && File.Exists(AudioPath))
             {
@@ -73,10 +64,10 @@ namespace OriNoco.UI
             }
 
             var chartFile = Path.Combine(newDirectory, "chart.orinoco");
-            File.WriteAllText(chartFile, MainSerializer.Serialize(new ChartData() { Info = newChartInfo }));
+            var chartData = new ChartData() { Info = newChartInfo };
+            File.WriteAllText(chartFile, MainSerializer.Serialize(chartData));
 
-            Program.Rhine.LoadChartData(new ChartData() { Info = newChartInfo });
-            Core.DirectoryPath = newDirectory;
+            Program.Rhine.LoadChartData(newDirectory, chartData);
             Core.IsProjectOpen = true;
             Window.SetTitle($"OriNoco - {newChartInfo.Name}");
 

@@ -14,16 +14,16 @@ namespace OriNoco
         public static ChartInfoData Info = new();
 
         public static string DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OriNoco");
-        public static string? DirectoryPath = null;
+        public static string? DirectoryPath { get; set; } = null;
         public static string? FilePath => DirectoryPath != null ? Path.Combine(DirectoryPath, "chart.orinoco") : null;
 
-        public static bool IsPlaying;
+        public static bool IsPlaying { get; set; }
 
-        public static ColorF NotePassedColor = Color.Yellow;
-        public static ColorF NoteSelectedHoverColor = new ColorF(0.8f, 1f, 1f);
-        public static ColorF NoteSelectedColor = new ColorF(0.8f, 1f, 0.8f);
-        public static ColorF NoteHoverColor = new ColorF(0.8f, 0.8f, 1f);
-        public static ColorF NoteColor = new ColorF(1f, 1f, 1f);
+        public static ColorF NotePassedColor { get; set; } = Color.Yellow;
+        public static ColorF NoteSelectedHoverColor { get; set; } = new(0.8f, 1f, 1f);
+        public static ColorF NoteSelectedColor { get; set; } = new(0.8f, 1f, 0.8f);
+        public static ColorF NoteHoverColor { get; set; } = new(0.8f, 0.8f, 1f);
+        public static ColorF NoteColor { get; set; } = new(1f, 1f, 1f);
 
         public static bool ShowNoteCount = true;
         public static bool ShowFPS = true;
@@ -67,6 +67,19 @@ namespace OriNoco
                     CopyDirectory(subDir.FullName, newDestinationDir, true);
                 }
             }
+        }
+
+        public static string GetFreeDirectoryInProjects(string name)
+        {
+            var newDirectory = Path.Combine(DataDirectory, "Projects", name);
+            if (Directory.Exists(newDirectory))
+            {
+                newDirectory = Path.Combine(DataDirectory, "Projects", Path.GetRandomFileName());
+                return GetFreeDirectoryInProjects(newDirectory);
+            }
+            
+            Directory.CreateDirectory(newDirectory);
+            return newDirectory;
         }
     }
 }

@@ -11,6 +11,8 @@ namespace OriNoco
         public static CharterScene Charter = new CharterScene();
         public const float TolerableEpsilon = 0.000012f;
         public const float GridEpsilon = 0.00015f;
+        public const float BigNumberLimit = 256f;
+        public const float BigBPMLimit = 4096f;
 
         [STAThread]
         static void Main(string[] args)
