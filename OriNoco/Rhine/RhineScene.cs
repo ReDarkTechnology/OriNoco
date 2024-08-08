@@ -49,6 +49,9 @@ namespace OriNoco.Rhine
         private float previousTime;
         private bool enterKeyPlaymode;
 
+        private RhineNote? nextNote;
+        private RhineNote? previousNote;
+
         public Point viewportOffset = new(0, 20);
         public Point viewportScaleOffset = new(300, 320);
         public Rectangle viewportRect = new(0, 0, 0, 0);
@@ -125,9 +128,6 @@ namespace OriNoco.Rhine
                     }
                 }
             }
-
-            foreach (var note in notes)
-                note.UpdateNoteColor();
         }
 
         public void UpdateHotKeys()
@@ -240,8 +240,15 @@ namespace OriNoco.Rhine
 
             viewport.Begin();
 
-            foreach (var note in notes)
-                note.Draw();
+            for (int i = 0; i < notes.Count; i++)
+            {
+                nextNote = notes.Count > i + 1 ? notes[i + 1] : null;
+                notes[i].Draw(previousNote, nextNote);
+                previousNote = notes[i];
+            }
+
+            nextNote = null;
+            previousNote = null;
 
             player.Draw();
 
@@ -357,6 +364,7 @@ namespace OriNoco.Rhine
             };
 
             note.AdjustDrawables(position, 0.2f);
+            note.UpdateType(type);
             notes.Add(note);
             notes.Sort((a, b) => a.time.CompareTo(b.time));
 

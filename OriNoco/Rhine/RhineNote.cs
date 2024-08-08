@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Numerics;
 using Raylib_CSharp.Audio;
+using Raylib_CSharp.Rendering;
 
 namespace OriNoco.Rhine
 {
@@ -68,11 +69,24 @@ namespace OriNoco.Rhine
             if (type == NoteType.Inverse)
             {
                 note.Texture = TextureDictionary.inverseNote;
+                note.Color = Color.White;
                 arrow.Color = Color.White;
             }
             else
             {
                 note.Texture = TextureDictionary.note;
+                switch (type)
+                {
+                    case NoteType.Tap:
+                        note.Color = Color.White;
+                        break;
+                    case NoteType.Hold:
+                        note.Color = Color.Blue;
+                        break;
+                    case NoteType.Drag:
+                        note.Color = Color.Yellow;
+                        break;
+                }
                 arrow.Color = Color.Black;
             }
             this.type = type;
@@ -85,9 +99,9 @@ namespace OriNoco.Rhine
                 particle.Move(note.Position, Math.Clamp(time - this.time, 0f, particleDuration) / particleDuration);
         }
 
-        public void UpdateNoteColor()
+        public void UpdateNoteColor(bool forcePass = false)
         {
-            if (time > currentTime)
+            if (time > currentTime && !forcePass)
             {
                 if (Program.Rhine.IsMouseOverRect(noteRect))
                 {
@@ -134,8 +148,19 @@ namespace OriNoco.Rhine
             return Program.Rhine.IsMouseOverRect(noteRect);
         }
 
-        public void Draw()
+        public void Draw(RhineNote? previousNote, RhineNote? nextNote)
         {
+            if (previousNote != null)
+                UpdateNoteColor(previousNote.type == NoteType.Hold && currentTime >= previousNote.time);
+            else
+                UpdateNoteColor();
+
+            if (type == NoteType.Hold && nextNote != null)
+            {
+                if (nextNote.type == NoteType.HoldEnd)
+                    Graphics.DrawLineEx(note.Position.InvertY(), nextNote.note.Position.InvertY(), 0.2f, note.Color);
+            }
+
             note.Draw();
             arrow.Draw();
 
