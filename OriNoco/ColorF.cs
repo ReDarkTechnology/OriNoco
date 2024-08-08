@@ -47,14 +47,14 @@ namespace OriNoco
         public static bool operator !=(ColorF lhs, ColorF rhs) => !(lhs == rhs);
 
         public override int GetHashCode() => R.GetHashCode() ^ G.GetHashCode() << 2 ^ B.GetHashCode() >> 2 ^ A.GetHashCode() >> 1;
-        public override bool Equals(object obj) => obj is ColorF && Equals((ColorF)obj);
+        public override bool Equals(object? obj) => obj is ColorF && Equals((ColorF)obj);
         public bool Equals(ColorF other) => R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
 
         public static ColorF Lerp(ColorF a, ColorF b, float t) => LerpUnclamped(a, b, t.Clamp(0f, 1f));
-        public static ColorF LerpUnclamped(ColorF a, ColorF b, float t) => new ColorF(a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t, a.A + (b.A - a.A) * t);
+        public static ColorF LerpUnclamped(ColorF a, ColorF b, float t) => new (a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t, a.A + (b.A - a.A) * t);
 
-        public static implicit operator ColorF(Color v) => new ColorF(ByteToFloat(v.R), ByteToFloat(v.G), ByteToFloat(v.B), ByteToFloat(v.A));
-        public static implicit operator Color(ColorF v) => new Color(FloatToByte(v.R), FloatToByte(v.G), FloatToByte(v.B), FloatToByte(v.A));
+        public static implicit operator ColorF(Color v) => new (ByteToFloat(v.R), ByteToFloat(v.G), ByteToFloat(v.B), ByteToFloat(v.A));
+        public static implicit operator Color(ColorF v) => new (FloatToByte(v.R), FloatToByte(v.G), FloatToByte(v.B), FloatToByte(v.A));
 
         public static float ByteToFloat(float byteValue) => byteValue / 255;
         public static byte FloatToByte(float floatValue) => (byte)(floatValue * 255);

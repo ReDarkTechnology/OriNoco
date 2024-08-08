@@ -4,8 +4,8 @@
     {
         public float initialBPM
         {
-            get => 60f / initialRate;
-            set => initialRate = 60f / value;
+            get => Core.RateToBPM(initialRate);
+            set => initialRate = Core.BPMToRate(value);
         }
     }
 
@@ -24,17 +24,17 @@
         public BPMChange(LaneChange change)
         {
             time = change.time;
-            bpm = 60f / change.rate;
+            bpm = Core.RateToBPM(change.rate);
         }
 
-        public float GetRate() => 60f / bpm;
+        public float GetRate() => Core.BPMToRate(bpm);
 
         public LaneChange ToChange()
         {
             return new LaneChange
             {
                 time = time,
-                rate = 60f / bpm
+                rate = bpm / 60f
             };
         }
     }

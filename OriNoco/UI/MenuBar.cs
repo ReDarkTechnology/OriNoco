@@ -63,6 +63,12 @@ namespace OriNoco.UI
 
                     if (ImGui.MenuItem("Properties", string.Empty, ref Program.Rhine.showProperties)) ChangeProperties();
 
+                    if (ImGui.MenuItem("Hit Sound", string.Empty, ref Core.PlayHitSound))
+                    {
+                        Settings.Data.PlayHitSound = Core.PlayHitSound;
+                        Settings.Save();
+                    }
+
                     if (ImGui.MenuItem("Project Info")) ProjectInfoWindow.Enabled = true;
 
                     ImGui.EndMenu();

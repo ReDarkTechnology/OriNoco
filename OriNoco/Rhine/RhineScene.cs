@@ -27,8 +27,7 @@ namespace OriNoco.Rhine
         // ImGUI Variables
         public bool showProperties = true;
         public bool adjustToGrid = true;
-
-        bool initSize;
+        public NoteType queueType = NoteType.Tap;
 
         public bool unlockBreakingChanges = false;
 
@@ -103,7 +102,7 @@ namespace OriNoco.Rhine
 
             if (Core.IsPlaying)
             {
-                if (Core.Time <= (music.GeTimeLength() + Core.Info.AudioOffset))
+                if (Core.Time <= (music.GetTimeLength() + Core.Info.AudioOffset))
                 {
                     Core.Time += Time.GetFrameTime();
                     music.UpdateStream();
@@ -201,13 +200,31 @@ namespace OriNoco.Rhine
         public void DrawNormal()
         {
             var mousePos = Input.GetMousePosition();
+            var vSize = GetViewportSize();
+
             Graphics.BeginScissorMode(viewportOffset.X, viewportOffset.Y, Window.GetScreenWidth() - viewportScaleOffset.X, Window.GetScreenHeight() - viewportScaleOffset.Y);
             Graphics.ClearBackground(Core.Info.BackgroundColor);
 
-            Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 5, Color.White);
+            Graphics.DrawTextPro(mainFont, "OriNoco", new Vector2(10, 30), new Vector2(0, 0), 0, fontSize, 2, Color.White);
             debugInfo[0] = Core.ShowFPS ? $"FPS: {Time.GetFPS()}" : null;
             debugInfo[1] = Core.ShowNoteCount ? $"Notes: {notes.Count}" : null; ;
             debugInfo[2] = Core.ShowTime ? $"Time: {Core.Time}" : null;
+
+            if (Program.Charter.createTypeIndex > -1)
+            {
+                for (int i = 0; i < Program.Charter.createNoteTypes.Length; i++)
+                {
+                    int xOffset = (i - Program.Charter.createTypeIndex) * 100;
+                    float fSize = i == Program.Charter.createTypeIndex ? (fontSize + 2.1f) : (fontSize - 2.1f);
+                    var tSize = TextManager.MeasureTextEx(mainFont, Program.Charter.createNoteNames[i], fSize, 2);
+                    Graphics.DrawTextPro(mainFont, Program.Charter.createNoteNames[i], new Vector2((vSize.X / 2) + xOffset, vSize.Y), tSize / 2, 0, fSize, 2, i == Program.Charter.createTypeIndex ? new ColorF(0.8f, 1f, 0.8f) : Color.Gray);
+                }
+            }
+            else
+            {
+                var tSize = TextManager.MeasureTextEx(mainFont, "Put your end note", fontSize, 2);
+                Graphics.DrawTextPro(mainFont, "Put your end note", new Vector2(vSize.X / 2, vSize.Y), tSize / 2, 0, fontSize, 2, new ColorF(0.8f, 0.8f, 1f));
+            }
 
             int offset = 50;
             for (int i = 0; i < debugInfo.Length; i++)
@@ -215,7 +232,7 @@ namespace OriNoco.Rhine
                 if (!string.IsNullOrWhiteSpace(debugInfo[i]))
                 {
 #pragma warning disable CS8604 // Possible null reference argument.
-                    Graphics.DrawTextEx(mainFont, debugInfo[i], new Vector2(10, offset), fontSize, 5, Color.White);
+                    Graphics.DrawTextEx(mainFont, debugInfo[i], new Vector2(10, offset), fontSize, 2, Color.White);
 #pragma warning restore CS8604 // Possible null reference argument.
                     offset += 20;
                 }
@@ -366,6 +383,90 @@ namespace OriNoco.Rhine
         public RhineNote? GetNoteAtTime(float time) =>
             notes.Find(val => MathF.Abs(val.time - time) < Program.TolerableEpsilon);
 
+        public NoteType GetTypeAtTime(float time)
+        {
+            var note = GetNoteAtTime(time);
+            return note == null ? NoteType.Tap : note.type;
+        }
+
+        public RhineNote? GetNextNoteAtTime(float time, NoteType type)
+        {
+            var note = GetNoteAtTime(time);
+            if (note == null)
+            {
+                return null;
+            }
+            else
+            {
+                var index = notes.IndexOf(note);
+                if (index < notes.Count - 1)
+                {
+                    if (notes[index + 1].type == type)
+                        return notes[index + 1];
+                    else
+                        return GetNextNoteAtTime(notes[index + 1].time, type);
+                }
+                else
+                    return null;
+            }
+        }
+
+        public RhineNote? GetNextNoteAtTime(float time)
+        {
+            var note = GetNoteAtTime(time);
+            if (note == null)
+            {
+                return null;
+            }
+            else
+            {
+                var index = notes.IndexOf(note);
+                if (index < notes.Count - 1)
+                    return notes[index + 1];
+                else
+                    return null;
+            }
+        }
+
+        public RhineNote? GetPreviousNoteAtTime(float time, NoteType type)
+        {
+            var note = GetNoteAtTime(time);
+            if (note == null)
+            {
+                return null;
+            }
+            else
+            {
+                var index = notes.IndexOf(note);
+                if (index > 0)
+                {
+                    if (notes[index - 1].type == type)
+                        return notes[index - 1];
+                    else
+                        return GetPreviousNoteAtTime(notes[index - 1].time, type);
+                }
+                else
+                    return null;
+            }
+        }
+
+        public RhineNote? GetPreviousNoteAtTime(float time)
+        {
+            var note = GetNoteAtTime(time);
+            if (note == null)
+            {
+                return null;
+            }
+            else
+            {
+                var index = notes.IndexOf(note);
+                if (index > 0)
+                    return notes[index - 1];
+                else
+                    return null;
+            }
+        }
+
         public void UpdateNote(float time)
         {
             var note = GetNoteAtTime(time);
@@ -377,14 +478,17 @@ namespace OriNoco.Rhine
                 if (direction == Direction.None)
                     DeleteNote(note);
                 else
+                {
                     note.UpdateDirection(direction);
+                    note.UpdateType(queueType);
+                }
 
                 UpdateNotesFromIndex(index - 1);
                 UpdatePlayerPosition();
             }
             else if (direction != Direction.None)
             {
-                note = CreateNote(NoteType.Tap, direction, time, player.drawable.Position);
+                note = CreateNote(queueType, direction, time, player.drawable.Position);
                 UpdateNotesFromIndex(notes.IndexOf(note));
             }
         }
@@ -399,6 +503,8 @@ namespace OriNoco.Rhine
 
                 if (index == 0)
                     note.AdjustDrawables(Direction.Up.ToDirection() * lane.GetValueFromTime(note.time), 0.2f);
+                else
+                    note.AdjustDrawables(notes[index - 1].note.Position + (notes[index - 1].direction.ToDirection() * (lane.GetValueFromTime(note.time) - lane.GetValueFromTime(notes[index - 1].time))), 0.2f);
 
                 Vector2 position = note.note.Position;
                 float previousValue = lane.GetValueFromTime(note.time);
@@ -415,7 +521,6 @@ namespace OriNoco.Rhine
                 }
             }
         }
-
         #endregion
         #region GUI
         public override void DrawGUI()
@@ -434,7 +539,7 @@ namespace OriNoco.Rhine
             if (ImGui.Begin("Properties", ref showProperties, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse))
                 MenuBar.ChangeProperties();
             {
-                if (ImGui.SliderFloat("Time", ref Core.Time, 0f, music.GeTimeLength() + Core.Info.AudioOffset))
+                if (ImGui.SliderFloat("Time", ref Core.Time, 0f, music.GetTimeLength() + Core.Info.AudioOffset))
                 {
                     if (Core.IsPlaying)
                     {
@@ -551,6 +656,7 @@ namespace OriNoco.Rhine
                             bpmLaneChange.rate = bpmChange.GetRate();
                             UpdateNotesFromIndex(0);
                         }
+                        ImGui.Text($"Rate: " + bpmChange.GetRate());
 
                         bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, Program.Charter.division) || unlockBreakingChanges;
 
@@ -575,13 +681,14 @@ namespace OriNoco.Rhine
                     else
                     {
                         GUI.Text($"Initial BPM");
-                        float initRate = 60f / Program.Charter.lane.initialRate;
+                        float initRate = Program.Charter.lane.initialBPM;
                         if (ImGui.InputFloat("BPM", ref initRate, 0.5f))
                         {
                             initRate = Math.Max(initRate, 10f);
-                            Program.Charter.lane.initialRate = 60f / initRate;
+                            Program.Charter.lane.initialRate = Core.BPMToRate(initRate);
                             UpdateNotesFromIndex(0);
                         }
+                        ImGui.Text($"Initial Rate: " + Program.Charter.lane.initialRate);
 
                         bool isAllowed = Program.Charter.lane.IsAPartOfRate(Core.Time, Program.Charter.division) || unlockBreakingChanges;
                         if (!isAllowed)
@@ -655,7 +762,12 @@ namespace OriNoco.Rhine
             {
                 Info = Core.Info,
                 Speed = lane.initialRate,
-                BPM = Program.Charter.lane.initialBPM
+                BPM = Program.Charter.lane.initialBPM,
+                Project = new ProjectData() { 
+                    GridScale = Program.Charter.yScale,
+                    Division = Program.Charter.division,
+                    GridCount = Program.Charter.gridLineCount
+                }
             };
 
             foreach (var change in lane.changes)
@@ -696,6 +808,10 @@ namespace OriNoco.Rhine
                     music = defaultMusic;
                 }
             }
+
+            Program.Charter.division = data.Project.Division;
+            Program.Charter.gridLineCount = data.Project.GridCount;
+            Program.Charter.yScale = data.Project.GridScale;
 
             foreach (var speed in data.Speeds)
                 lane.Add(speed.Time, speed.Speed);

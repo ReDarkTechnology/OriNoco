@@ -61,6 +61,23 @@ namespace OriNoco.Rhine
             arrow.Rotation = direction.ToRotation();
         }
 
+        public void UpdateType(NoteType type)
+        {
+            if (this.type == type) return;
+
+            if (type == NoteType.Inverse)
+            {
+                note.Texture = TextureDictionary.inverseNote;
+                arrow.Color = Color.White;
+            }
+            else
+            {
+                note.Texture = TextureDictionary.note;
+                arrow.Color = Color.Black;
+            }
+            this.type = type;
+        }
+
         public void Update(float time)
         {
             currentTime = time;
@@ -93,7 +110,7 @@ namespace OriNoco.Rhine
             {
                 if (!wasHit)
                 {
-                    if (Core.IsPlaying)
+                    if (Core.IsPlaying && Core.PlayHitSound)
                         sound.Play();
                     wasHit = true;
                 }

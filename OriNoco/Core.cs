@@ -28,6 +28,7 @@ namespace OriNoco
         public static bool ShowNoteCount = true;
         public static bool ShowFPS = true;
         public static bool ShowTime = true;
+        public static bool PlayHitSound = true;
 
         public static void Init()
         {
@@ -80,6 +81,16 @@ namespace OriNoco
             
             Directory.CreateDirectory(newDirectory);
             return newDirectory;
+        }
+
+        public static float RateToBPM(float rate)
+        {
+            return rate * 60f;
+        }
+
+        public static float BPMToRate(float bpm)
+        {
+            return bpm / 60f;
         }
     }
 }

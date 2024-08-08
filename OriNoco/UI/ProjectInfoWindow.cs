@@ -27,10 +27,10 @@ namespace OriNoco.UI
                 Core.Info.AudioComposer = GUI.InputText("Audio Composer", Core.Info.AudioComposer, 256);
                 if(GUI.InputFloat("Audio Offset", Core.Info.AudioOffset, out float result))
                 {
-                    Core.Info.AudioOffset = Math.Max(result, -Program.Rhine.music.GeTimeLength());
+                    Core.Info.AudioOffset = Math.Max(result, -Program.Rhine.music.GetTimeLength());
                 }
 
-                if (Math.Abs(-Core.Info.AudioOffset - Program.Rhine.music.GeTimeLength()) < Program.TolerableEpsilon)
+                if (Math.Abs(-Core.Info.AudioOffset - Program.Rhine.music.GetTimeLength()) < Program.TolerableEpsilon)
                 {
                     GUI.TextColored(new Vector4(1f, 0.7f, 0.7f, 1f), "What is the point of skipping the whole audio?");
                 }

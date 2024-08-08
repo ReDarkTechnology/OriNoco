@@ -9,6 +9,8 @@ namespace OriNoco.Data
     {
         [JsonPropertyName("info")]
         public ChartInfoData Info { get; set; } = new();
+        [JsonPropertyName("project")]
+        public ProjectData Project { get; set; } = new();
         [JsonPropertyName("speed")]
         public float Speed { get; set; } = 1f;
         [JsonPropertyName("bpm")]

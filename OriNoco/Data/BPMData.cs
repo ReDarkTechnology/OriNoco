@@ -21,7 +21,7 @@ namespace OriNoco.Data
         public BPMData(LaneChange change)
         {
             Time = change.time;
-            BPM = 60f / change.rate;
+            BPM = Core.RateToBPM(change.rate);
         }
 
         public BPMData(BPMChange change)
@@ -30,7 +30,7 @@ namespace OriNoco.Data
             BPM = change.bpm;
         }
 
-        public LaneChange ToChange() => new(Time, 60f / BPM);
+        public LaneChange ToChange() => new(Time, Core.BPMToRate(BPM));
         public BPMChange ToBPMChange() => new(Time, BPM);
     }
 }

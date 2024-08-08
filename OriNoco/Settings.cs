@@ -60,10 +60,16 @@ namespace OriNoco
         public KeyboardKey GameplayAltRightKey { get; set; } = KeyboardKey.D;
         public KeyboardKey GameplayAltDownKey { get; set; } = KeyboardKey.S;
 
+        public KeyboardKey NextNoteType { get; set; } = KeyboardKey.E;
+        public KeyboardKey PreviousNoteType { get; set; } = KeyboardKey.Q;
+
+        public KeyboardKey DeleteNote { get; set; } = KeyboardKey.Delete;
+
         public bool ShowFPS { get; set; } = true;
         public bool ShowNoteCount { get; set; } = true;
         public bool ShowTime { get; set; } = true;
         public bool ShowProperties { get; set; } = true;
         public bool AlwaysAllowBreakingChanges { get; set; } = false;
+        public bool PlayHitSound { get; set; } = true;
     }
 }

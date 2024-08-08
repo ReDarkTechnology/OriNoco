@@ -4,6 +4,7 @@ using System.Numerics;
 
 using ImGuiNET;
 using OriNoco.Rhine;
+using Raylib_CSharp;
 using Raylib_CSharp.Colors;
 using Raylib_CSharp.Interact;
 using Raylib_CSharp.Rendering;
@@ -30,12 +31,32 @@ namespace OriNoco.Charter
 
         public RhythmLane lane = new();
         public TextureDrawable rightActive = new(default);
+        public CharterNote? holdStartNote = null;
 
         public Point viewportPosition = new Point();
         public Size viewportSize = new Size();
         public Rectangle viewportRect = new Rectangle();
 
-        public float yScale = 75f;
+        public NoteType createNoteType = NoteType.Tap;
+
+        public NoteType[] createNoteTypes = { 
+            NoteType.Tap,
+            NoteType.Drag,
+            NoteType.Inverse,
+            NoteType.Hold,
+        };
+
+        public string[] createNoteNames =
+        {
+            "Tap",
+            "Drag",
+            "Inverse",
+            "Hold",
+        };
+
+        public int createTypeIndex = 0;
+
+        public float yScale = 240f;
         public float yOffset = 0;
         public int division = 4;
         public int gridLineCount = 64;
@@ -89,20 +110,42 @@ namespace OriNoco.Charter
 
         public void ReadInputs()
         {
-            if (Input.IsKeyPressed(KeyboardKey.Left))
+            if (Input.IsKeyPressed(Settings.Data.GameplayLeftKey) || Input.IsKeyPressed(Settings.Data.GameplayAltLeftKey))
                 OnActionPressed(Direction.Left);
-            if (Input.IsKeyPressed(KeyboardKey.Right))
+            if (Input.IsKeyPressed(Settings.Data.GameplayRightKey) || Input.IsKeyPressed(Settings.Data.GameplayAltRightKey))
                 OnActionPressed(Direction.Right);
-            if (Input.IsKeyPressed(KeyboardKey.Up))
+            if (Input.IsKeyPressed(Settings.Data.GameplayUpKey) || Input.IsKeyPressed(Settings.Data.GameplayAltUpKey))
                 OnActionPressed(Direction.Up);
-            if (Input.IsKeyPressed(KeyboardKey.Down))
+            if (Input.IsKeyPressed(Settings.Data.GameplayDownKey) || Input.IsKeyPressed(Settings.Data.GameplayAltDownKey))
                 OnActionPressed(Direction.Down);
+
+            if (Input.IsKeyPressed(Settings.Data.NextNoteType))
+            {
+                createTypeIndex = (createTypeIndex + 1) % createNoteTypes.Length;
+                createNoteType = createNoteTypes[createTypeIndex];
+                Console.WriteLine($"Next note type: {createNoteType}");
+            }
+
+            if (Input.IsKeyPressed(Settings.Data.PreviousNoteType))
+            {
+                createTypeIndex = (createTypeIndex - 1 + createNoteTypes.Length) % createNoteTypes.Length;
+                createNoteType = createNoteTypes[createTypeIndex];
+                Console.WriteLine($"Previous note type: {createNoteType}");
+            }
         }
 
         public void OnActionPressed(Direction direction)
         {
             if (GUI.IsEditing()) return;
 
+            if (createNoteType == NoteType.Hold) CreateHoldNote(direction);
+            else if (createNoteType == NoteType.HoldEnd) CreateHoldEndNote();
+            else CreateNormalNote(direction);
+        }
+
+        public void CreateNormalNote(Direction direction)
+        {
+            Program.Rhine.queueType = createNoteType;
             var existingNotes = FindNotesAtTime(Core.Time);
             if (existingNotes.Count > 0)
             {
@@ -157,9 +200,144 @@ namespace OriNoco.Charter
             }
         }
 
+        public void CreateHoldNote(Direction direction)
+        {
+            var existingNotes = FindNotesAtTime(Core.Time);
+            if (existingNotes.Count > 0)
+            {
+                var sameNote = existingNotes.Find(val => val.direction == direction);
+                if (sameNote != null)
+                {
+                    // Remove a note if it is already at the same position and direction
+                    RemoveNote(sameNote);
+                }
+                else
+                {
+                    if (existingNotes.Count >= 1)
+                    {
+                        if (MessageBox.Show("Are you sure you want to replace this note with the current direction and type?", "Confirmation", MessageBoxType.YesNo, MessageBoxIcon.Warning) == Result.Yes)
+                        {
+                            RemoveNotes(Core.Time);
+
+                            holdStartNote = CreateNote(direction, Core.Time);
+                            createNoteType = NoteType.HoldEnd;
+                            createTypeIndex = -1;
+                        }
+                    }
+                    else
+                    {
+                        holdStartNote = CreateNote(direction, Core.Time);
+                        createNoteType = NoteType.HoldEnd;
+                        createTypeIndex = -1;
+                    }
+                }
+            }
+            else
+            {
+                holdStartNote = CreateNote(direction, Core.Time);
+                createNoteType = NoteType.HoldEnd;
+                createTypeIndex = -1;
+            }
+        }
+
+        public void CreateHoldEndNote()
+        {
+            if (holdStartNote != null)
+            {
+                if (holdStartNote.time == Core.Time)
+                {
+                    Program.Rhine.queueType = NoteType.Tap;
+                    Program.Rhine.UpdateNote(Core.Time);
+                }
+                else if (holdStartNote.time > Core.Time)
+                {
+                    Console.WriteLine("This ain't recommended bud...");
+                    var notesAround = FindNotesNonStartAroundTime(Core.Time, holdStartNote.time);
+                    if (notesAround.Count > 0)
+                    {
+                        if(MessageBox.Show("There are notes in between the hold note, do you want to remove it?\n" +
+                            "The notes inbetween needs to be removed in order to create a hold note", "Confirmation", MessageBoxType.YesNo, MessageBoxIcon.Warning) == Result.Yes)
+                        {
+                            foreach(var note in notesAround) RemoveNote(note);
+
+                            // Update the note at the start of the hold as the end hold note instead
+                            Program.Rhine.queueType = NoteType.HoldEnd;
+                            Program.Rhine.UpdateNote(holdStartNote.time);
+
+                            Program.Rhine.queueType = NoteType.Hold;
+                            CreateNote(holdStartNote.direction, Core.Time);
+
+                            createNoteType = NoteType.Hold;
+                            createTypeIndex = GetCreateTypeIndex(NoteType.Hold);
+                        }
+                        else
+                        {
+                            RemoveSingleNote(holdStartNote, true);
+                            createNoteType = NoteType.Tap;
+                            createTypeIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        Program.Rhine.queueType = NoteType.HoldEnd;
+                        Program.Rhine.UpdateNote(holdStartNote.time);
+
+                        Program.Rhine.queueType = NoteType.Hold;
+                        CreateNote(holdStartNote.direction, Core.Time);
+
+                        createNoteType = NoteType.Hold;
+                        createTypeIndex = GetCreateTypeIndex(NoteType.Hold);
+                    }
+                }
+                else
+                {
+                    var notesAround = FindNotesNonStartAroundTime(holdStartNote.time, Core.Time);
+                    if (notesAround.Count > 0)
+                    {
+                        if (MessageBox.Show("There are notes in between the hold note, do you want to remove it?\n" +
+                            "The notes inbetween needs to be removed in order to create a hold note", "Confirmation", MessageBoxType.YesNo, MessageBoxIcon.Warning) == Result.Yes)
+                        {
+                            foreach (var note in notesAround) RemoveNote(note);
+
+                            Program.Rhine.queueType = NoteType.HoldEnd;
+                            CreateNote(holdStartNote.direction, Core.Time);
+
+                            createNoteType = NoteType.Hold;
+                            createTypeIndex = GetCreateTypeIndex(NoteType.Hold);
+                        }
+                        else
+                        {
+                            RemoveSingleNote(holdStartNote, true);
+                        }
+                    }
+                    else
+                    {
+                        Program.Rhine.queueType = NoteType.HoldEnd;
+                        CreateNote(holdStartNote.direction, Core.Time);
+
+                        createNoteType = NoteType.Hold;
+                        createTypeIndex = GetCreateTypeIndex(NoteType.Hold);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("PANIC-243: You didn't actually started making any hold notes... okay...");
+                createNoteType = NoteType.Tap;
+                createTypeIndex = 0;
+            }
+        }
+
+        public int GetCreateTypeIndex(NoteType type)
+        {
+            for(int i = 0; i < createNoteTypes.Length; i++)
+                if (createNoteTypes[i] == type) return i;
+            return -1;
+        }
+
         public CharterNote CreateNote(Direction direction, float time, bool refresh = true)
         {
-            if (Program.Rhine.adjustToGrid)
+            if (Program.Rhine.adjustToGrid && Core.IsPlaying)
                 time = lane.AdjustTimeToRate(time, division);
 
             var note = new CharterNote(this, time, direction);
@@ -167,7 +345,10 @@ namespace OriNoco.Charter
             notes.Add(note);
 
             if (refresh)
+            {
+                Program.Rhine.queueType = createNoteType;
                 Program.Rhine.UpdateNote(time);
+            }
             return note;
         }
 
@@ -216,6 +397,43 @@ namespace OriNoco.Charter
 
         public void RemoveNote(CharterNote note, bool refresh = true)
         {
+            var type = Program.Rhine.GetTypeAtTime(note.time);
+            if (type == NoteType.Hold)
+            {
+                var holdEnd = Program.Rhine.GetNextNoteAtTime(note.time, NoteType.HoldEnd);
+
+                if (holdEnd != null)
+                {
+                    RemoveNotes(note.time, refresh);
+                    RemoveNotes(holdEnd.time, refresh);
+                }
+                else
+                {
+                    MessageBox.Show("PANIC-634 - What is happening? HoldStart found but no HoldEnd found.");
+                }
+            }
+            else if (type == NoteType.HoldEnd)
+            {
+                var hold = Program.Rhine.GetPreviousNoteAtTime(note.time, NoteType.Hold);
+
+                if (hold != null)
+                {
+                    RemoveNotes(note.time, refresh);
+                    RemoveNotes(hold.time, refresh);
+                }
+                else
+                {
+                    MessageBox.Show("PANIC-635 - I cannot comprehend this, HoldEnd found but no HoldStart found.");
+                }
+            }
+            else
+            {
+                RemoveSingleNote(note, refresh);
+            }
+        }
+
+        public void RemoveSingleNote(CharterNote note, bool refresh = true)
+        {
             float time = note.time;
             notes.Remove(note);
 
@@ -223,8 +441,34 @@ namespace OriNoco.Charter
                 Program.Rhine.UpdateNote(time);
         }
 
+        public void RemoveNotes(float time, bool refresh = true)
+        {
+            var notesToRemove = FindNotesAtTime(time);
+            foreach (var note in notesToRemove)
+                RemoveSingleNote(note, false);
+
+            if (refresh)
+                Program.Rhine.DeleteNote(time);
+        }
+
         public List<CharterNote> FindNotesAtTime(float time) =>
             notes.FindAll(val => MathF.Abs(val.time - time) < Program.TolerableEpsilon);
+
+        public List<CharterNote> FindNotesAroundTime(float startTime, float endTime)
+        {
+            if (startTime > endTime)
+                (startTime, endTime) = (endTime, startTime);
+
+            return notes.FindAll(val => val.time > startTime - Program.TolerableEpsilon && val.time < endTime + Program.TolerableEpsilon);
+        }
+
+        public List<CharterNote> FindNotesNonStartAroundTime(float startTime, float endTime)
+        {
+            if (startTime > endTime)
+                (startTime, endTime) = (endTime, startTime);
+
+            return notes.FindAll(val => val.time > startTime - Program.TolerableEpsilon && val.time < endTime + Program.TolerableEpsilon && val != holdStartNote);
+        }
 
         public Direction GetDirectionAtTime(float time)
         {

@@ -6,7 +6,7 @@ namespace OriNoco
     internal class MsgBoxGtk
     {
         internal static bool _initialized;
-        internal static Result Show(string text, string caption, MessageBoxType type, MessageBoxIcon icon)
+        internal static Result Show(string text, string? caption, MessageBoxType type, MessageBoxIcon icon)
         {
             if (!_initialized)
             {
