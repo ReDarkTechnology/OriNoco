@@ -4,16 +4,34 @@ using UnityEngine;
 
 namespace OriNoco.Timing
 {
+    [ExecuteInEditMode]
     public class TimeManager : MonoBehaviour
     {
-        // Start is called before the first frame update
-        void Start()
+        public BeatTime time;
+        private Metronome metronome;
+
+        private void Start()
+        {
+            metronome = References.Get<Metronome>();
+        }
+
+        private void Update()
+        {
+            if (Application.isPlaying) UpdateGame(); else UpdateEditor();
+            UpdateHybrid();
+        }
+
+        private void UpdateEditor()
         {
 
         }
 
-        // Update is called once per frame
-        void Update()
+        private void UpdateGame()
+        {
+
+        }
+
+        private void UpdateHybrid()
         {
 
         }

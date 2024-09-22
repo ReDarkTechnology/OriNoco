@@ -5,196 +5,88 @@ namespace OriNoco.Timing
 {
     public class Metronome : MonoBehaviour
     {
-        public static List<BeatRegion> bpms = new List<BeatRegion>() {
-            new BeatRegion()
+        public List<BeatRegion> regions = new() {
+            new(new BeatTime(0), 120, 4)
         };
 
-        public static void AddBeat(BeatRegion change)
+        private void Start()
         {
-            BeatRegion similar = bpms.Find(val => val.time == change.time);
-            if (similar == null)
-                bpms.Add(change);
-            /*else
-                throw new Exception("Beat change with similar time is found, please choose a different time");*/
-
-            SortAllBeats();
+            SillyTest();
         }
 
-        public static bool IsTimeTakenByBeat(BeatTime time)
+        public float GetSecondsFromBeatTime(BeatTime time)
         {
-            return bpms.Find(val => val.time == time) != null;
-        }
+            if (regions.Count == 0) return 0;
+            if (regions.Count == 1) return GetSecondsFromBeat(time.whole, regions[0].beatPerMinute);
 
-        public static void SortAllBeats()
-        {
-            bpms.Sort((a, b) => a.time.GetWholeValue().CompareTo(b.time.GetWholeValue()));
-        }
+            float seconds = 0;
+            float beat = 0;
+            float bpm = regions[0].beatPerMinute;
 
-        public static void ResetBeats()
-        {
-            bpms.Clear();
-            bpms.Add(new BeatRegion());
-        }
-
-        public static void SetBeat(int index, BeatRegion info)
-        {
-            bpms.RemoveAt(index);
-            bpms.Insert(index, info);
-        }
-
-        public static int GetBPMIndex(BeatTime time)
-        {
-            for (int i = 1; i < bpms.Count; i++)
+            for (int i = 1; i < regions.Count; i++)
             {
-                if (time < bpms[i].time)
-                    return i - 1;
-            }
-            return bpms.Count - 1;
-        }
-
-        public static void GetSecondsRangeFromBeat(BeatTime beatStart, BeatTime beatEnd, out float start, out float end)
-        {
-            start = GetSecondsFromBeat(beatStart, 0, 0, out float tr, out int iR);
-            end = beatStart == beatEnd ? start : GetSecondsFromBeat(beatEnd, iR, tr, out float r, out int g);
-        }
-
-        public static float GetSecondsFromBeat(BeatTime beat) => GetSecondsFromBeat(beat, 0, 0, out float r, out int g);
-
-        /// <summary>
-        /// Get seconds from the beat with the correct BPM information
-        /// </summary>
-        /// <param name="beat">The beat</param>
-        /// <param name="index">Index to start from</param>
-        /// <param name="t">T to check from</param>
-        /// <param name="tR">Last T after checking</param>
-        /// <param name="iR">Last index after checking</param>
-        /// <returns></returns>
-        public static float GetSecondsFromBeat(BeatTime beat, int index, float t, out float tR, out int iR)
-        {
-            float bpm = bpms[index].beatPerMinute;
-            BeatTime tP = bpms[index].time;
-
-            for (int i = index + 1; i < bpms.Count; i++)
-            {
-                if (beat > bpms[i].time)
+                // If the time is still above the next region, add the seconds until the next region, then continue
+                if (time >= regions[i].time)
                 {
-                    float decr = (bpms[i].time - tP).ToSeconds(bpm);
-                    bpm = bpms[i].beatPerMinute;
-                    tP = bpms[i].time;
-                    t += decr;
+                    seconds += GetSecondsFromBeat(regions[i].time.whole - beat, bpm);
+                    beat = regions[i].time.whole;
+                    bpm = regions[i].beatPerMinute;
+                }
+                // If the time is not above the next region, return the seconds and stop
+                else
+                {
+                    return seconds + GetSecondsFromBeat(time.whole - beat, bpm);
+                }
+            }
+
+            // If we got here, it means we've gone through all the regions and we just need to add the seconds since the last region
+            return seconds + GetSecondsFromBeat(time.whole - beat, bpm);
+        }
+
+        public BeatTime GetBeatTimeFromSeconds(float seconds)
+        {
+            if (regions.Count == 0) return new BeatTime();
+            if (regions.Count == 1) return new BeatTime(seconds * regions[0].beatPerMinute / 60f);
+
+            float beat = 0;
+            float time = 0;
+            float bpm = regions[0].beatPerMinute;
+
+            for (int i = 1; i < regions.Count; i++)
+            {
+                float secondsBeat = beat + GetBeatFromSeconds(seconds - time, bpm);
+                if (secondsBeat >= regions[i].time.whole)
+                {
+                    time += GetSecondsFromBeat(regions[i].time.whole - beat, bpm);
+                    beat = regions[i].time.whole;
+                    bpm = regions[i].beatPerMinute;
                 }
                 else
                 {
-                    tR = t;
-                    iR = i;
-
-                    float decr = (beat - tP).ToSeconds(bpm);
-                    t += decr;
-                    return t;
-                }
-            }
-            tR = t;
-            iR = bpms.Count - 1;
-            float final = (beat - tP).ToSeconds(bpm);
-            t += final;
-            return t;
-        }
-
-        public static BeatTime GetBeatFromSeconds(float time) => GetBeatFromSeconds(time, 0, new BeatTime(), out BeatTime r, out int g);
-        public static BeatTime GetBeatFromSeconds(float time, int index, BeatTime t, out BeatTime tR, out int iR)
-        {
-            if (time == 0)
-            {
-                tR = new BeatTime();
-                iR = 0;
-                return tR;
-            }
-
-            float bpm = bpms[index].beatPerMinute;
-            float s = bpms[index].time.ToSeconds(bpm);
-
-            for (int i = index + 1; i < bpms.Count; i++)
-            {
-                var bpt = s + bpms[i].time.ToSeconds(bpm);
-                if (time > bpt)
-                {
-                    s = bpt;
-                    t = bpms[i].time;
-                    bpm = bpms[i].beatPerMinute;
-                }
-                else
-                {
-                    tR = t;
-                    t = t + BeatTime.FromNumber(time - s, bpm);
-                    iR = i;
-                    return t;
+                    return new BeatTime(beat + GetBeatFromSeconds(seconds - time, bpm));
                 }
             }
 
-            tR = t;
-            t = t + BeatTime.FromNumber(time - s, bpm);
-            iR = bpms.Count - 1;
-            return t;
+            return new BeatTime(beat + GetBeatFromSeconds(seconds - time, bpm));
         }
 
-        public static BeatTime GetPreviousBeat(BeatTime time)
+        private static float GetBeatFromSeconds(float seconds, float bpm) => seconds * bpm / 60f;
+        private static float GetSecondsFromBeat(float beat, float bpm) => beat * 60f / bpm;
+
+        public void SillyTest()
         {
-            int index = GetBPMIndex(time);
-            time.denominator = bpms[index].defaultSignature;
-            if (time.numerator > 0)
-            {
-                time.numerator--;
-            }
-            else
-            {
-                time.beat--;
-                time.numerator = time.denominator - 1;
-            }
+            regions = new() {
+                new(new BeatTime(0), 120, 4),
+                new(new BeatTime(4), 180, 4),
+                new(new BeatTime(8), 240, 4),
+            };
 
-            if (time < bpms[index].time && index > 0)
+            for (int i = 0; i < 40; i++)
             {
-                time = SnapToBPMGrid(bpms[index - 1], time);
+                var time = GetSecondsFromBeatTime(new BeatTime(i * 0.25f));
+                var beat = GetBeatTimeFromSeconds(time);
+                Debug.Log($"{i} -> {time} -> {beat}");
             }
-            return time;
-        }
-
-        public static BeatTime GetNextBeat(BeatTime time)
-        {
-            int index = GetBPMIndex(time);
-            time.denominator = bpms[index].defaultSignature;
-            if (time.numerator < time.denominator - 1)
-            {
-                time.numerator++;
-            }
-            else
-            {
-                time.beat++;
-                time.numerator = 0;
-            }
-
-            if (index < bpms.Count - 1)
-            {
-                if (bpms[index + 1].time < time)
-                    time = bpms[index + 1].time;
-            }
-            return time;
-        }
-
-        public static BeatTime SnapTime(BeatTime time)
-        {
-            int index = GetBPMIndex(time);
-            return SnapToBPMGrid(bpms[index], time);
-        }
-
-        public static BeatTime SnapToBPMGrid(BeatRegion info, BeatTime time) => SnapToBPMGrid(time, info.defaultSignature);
-        public static BeatTime SnapToBPMGrid(BeatTime time, float signature)
-        {
-            var sig = time.GetSignature();
-            float sg = sig * signature;
-            int num = (int)sg;
-            time.numerator = num;
-            time.denominator = signature;
-            return time;
         }
     }
 }

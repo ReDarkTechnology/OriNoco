@@ -7,6 +7,5 @@ namespace OriNoco.Mania
 {
     public class ManiaManager : MonoBehaviour
     {
-        public Metronome metronome;
     }
 }
