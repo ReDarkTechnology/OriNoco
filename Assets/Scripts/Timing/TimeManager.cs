@@ -4,11 +4,16 @@ using UnityEngine;
 
 namespace OriNoco.Timing
 {
-    [ExecuteInEditMode]
     public class TimeManager : MonoBehaviour
     {
         public BeatTime time;
         private Metronome metronome;
+
+        public float fTime
+        {
+            get => metronome.GetSecondsFromBeatTime(time);
+            set => time = metronome.GetBeatTimeFromSeconds(value);
+        }
 
         private void Start()
         {
@@ -17,23 +22,6 @@ namespace OriNoco.Timing
 
         private void Update()
         {
-            if (Application.isPlaying) UpdateGame(); else UpdateEditor();
-            UpdateHybrid();
-        }
-
-        private void UpdateEditor()
-        {
-
-        }
-
-        private void UpdateGame()
-        {
-
-        }
-
-        private void UpdateHybrid()
-        {
-
         }
     }
 }
