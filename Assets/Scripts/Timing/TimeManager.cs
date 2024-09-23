@@ -1,27 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace OriNoco.Timing
 {
     public class TimeManager : MonoBehaviour
     {
-        public BeatTime time;
-        private Metronome metronome;
-
-        public float fTime
+        private static BeatTime _time;
+        public static BeatTime time
         {
-            get => metronome.GetSecondsFromBeatTime(time);
-            set => time = metronome.GetBeatTimeFromSeconds(value);
+            get => _time;
+            set
+            {
+                _realtime = Metronome.GetSecondsFromBeatTime(value);
+                _time = value;
+            }
         }
 
-        private void Start()
+        private static float _realtime;
+        public static float realtime
         {
-            metronome = References.Get<Metronome>();
-        }
-
-        private void Update()
-        {
+            get => _realtime;
+            set
+            {
+                _time = Metronome.GetBeatTimeFromSeconds(value);
+                _realtime = value;
+            }
         }
     }
 }

@@ -5,16 +5,11 @@ namespace OriNoco.Timing
 {
     public class Metronome : MonoBehaviour
     {
-        public List<BeatRegion> regions = new() {
+        public static List<BeatRegion> regions = new() {
             new(new BeatTime(0), 120, 4)
         };
 
-        private void Start()
-        {
-            SillyTest();
-        }
-
-        public float GetSecondsFromBeatTime(BeatTime time)
+        public static float GetSecondsFromBeatTime(BeatTime time)
         {
             if (regions.Count == 0) return 0;
             if (regions.Count == 1) return GetSecondsFromBeat(time.whole, regions[0].beatPerMinute);
@@ -43,7 +38,7 @@ namespace OriNoco.Timing
             return seconds + GetSecondsFromBeat(time.whole - beat, bpm);
         }
 
-        public BeatTime GetBeatTimeFromSeconds(float seconds)
+        public static BeatTime GetBeatTimeFromSeconds(float seconds)
         {
             if (regions.Count == 0) return new BeatTime();
             if (regions.Count == 1) return new BeatTime(seconds * regions[0].beatPerMinute / 60f);
@@ -73,20 +68,17 @@ namespace OriNoco.Timing
         private static float GetBeatFromSeconds(float seconds, float bpm) => seconds * bpm / 60f;
         private static float GetSecondsFromBeat(float beat, float bpm) => beat * 60f / bpm;
 
-        public void SillyTest()
+        public static BeatRegion GetRegionAtTime(BeatTime time)
         {
-            regions = new() {
-                new(new BeatTime(0), 120, 4),
-                new(new BeatTime(4), 180, 4),
-                new(new BeatTime(8), 240, 4),
-            };
+            if (time.whole < 0) return null;
 
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < regions.Count; i++)
             {
-                var time = GetSecondsFromBeatTime(new BeatTime(i * 0.25f));
-                var beat = GetBeatTimeFromSeconds(time);
-                Debug.Log($"{i} -> {time} -> {beat}");
+                if (time < regions[i].time)
+                    return regions[i - 1];
             }
+
+            return regions[^1];
         }
     }
 }
