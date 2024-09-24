@@ -3563,7 +3563,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scale: 500
-  notePrefab: {fileID: 0}
+  notePrefab: {fileID: 8886223073004009169, guid: 2c574ed50e9b57f6191b47dca15dde05, type: 3}
   noteType: 0
   noteSprites:
   - {fileID: 21300000, guid: 2dbb6cdf423d8d148bd2087719215d8a, type: 3}

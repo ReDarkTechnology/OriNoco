@@ -31,7 +31,7 @@ namespace OriNoco
     /// </summary>
     public static class SharedHelper
     {
-        public static Vector2[] directions = {
+        private static readonly Vector2[] Directions = {
             new(-1, 0),
             new(0, -1),
             new(0, 1),
@@ -43,7 +43,7 @@ namespace OriNoco
             new(0, 1)
         };
 
-        public static float[] rotations = {
+        private static readonly float[] Rotations = {
             90,
             180,
             0,
@@ -57,12 +57,12 @@ namespace OriNoco
 
         public static bool IsDiagonal(this Direction dir)
         {
-            int value = (int)dir;
-            return value > 3 && value < 8;
+            var value = (int)dir;
+            return value is > 3 and < 8;
         }
         public static bool IsNotDiagonal(this Direction dir) => ((int)dir) < 4;
 
-        public static float ToRotation(this Direction dir) => rotations[(int)dir];
-        public static Vector2 ToDirection(this Direction dir) => directions[(int)dir];
+        public static float ToRotation(this Direction dir) => Rotations[(int)dir];
+        public static Vector2 ToDirection(this Direction dir) => Directions[(int)dir];
     }
 }

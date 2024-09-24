@@ -19,7 +19,7 @@ namespace OriNoco.Mania
         {
             var obj = Instantiate(ManiaManager.Instance.notePrefab, transform);
             var note = obj.GetComponent<ManiaNote>();
-            (note.time, note.type) = (time, type);
+            (note.direction, note.time, note.type) = (direction, time, type);
             note.UpdateGraphics();
             return note;
         }
