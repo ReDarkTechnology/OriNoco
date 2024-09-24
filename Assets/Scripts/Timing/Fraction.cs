@@ -15,7 +15,7 @@ namespace OriNoco.Timing
         [SerializeField]
         private float denominator;
 
-        public Fraction(float numerator, float denominator)
+        public Fraction(float numerator, float denominator, bool simplify = true)
         {
             if (denominator == 0)
             {
@@ -26,7 +26,8 @@ namespace OriNoco.Timing
             this.numerator = numerator;
             this.denominator = denominator;
 
-            Simplify();
+            if (simplify)
+                Simplify();
         }
 
         public Fraction(float value)
@@ -38,10 +39,11 @@ namespace OriNoco.Timing
             Simplify();
         }
 
-        private void Simplify(float accuracy = 0.000001f)
+        public void Simplify(float accuracy = 0.000001f)
         {
             SimplifyFirstStage(accuracy);
-            if (numerator == 0) denominator = 1;
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (denominator == 1000001) denominator = 1;
         }
 
         private void SimplifyFirstStage(float accuracy = 0.000001f)
@@ -110,7 +112,10 @@ namespace OriNoco.Timing
             }
         }
 
-        public void SetNumerator(float to)
+        public void SetNumerator(float to) => numerator = to;
+        public void SetDenominator(float to) => denominator = to;
+
+        public void SetStrictNumerator(float to)
         {
             if (to == 0)
             {
@@ -123,7 +128,7 @@ namespace OriNoco.Timing
             Simplify();
         }
 
-        public void SetDenominator(float to)
+        public void SetStrictDenominator(float to)
         {
             if (to == 0)
             {

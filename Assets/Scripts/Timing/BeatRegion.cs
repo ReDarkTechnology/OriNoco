@@ -2,6 +2,10 @@ using System;
 
 namespace OriNoco.Timing
 {
+    /// <summary>
+    /// Represents a region in the chart metronome, defined by a start time, tempo (beats per minute), and default time
+    /// signature.
+    /// </summary>
     [Serializable]
     public class BeatRegion
     {

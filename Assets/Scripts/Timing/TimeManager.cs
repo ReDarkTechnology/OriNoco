@@ -1,8 +1,9 @@
+using System;
 using UnityEngine;
 
 namespace OriNoco.Timing
 {
-    public class TimeManager : MonoBehaviour
+    public class TimeManager : SingleInstance<TimeManager>
     {
         private static BeatTime _time;
         public static BeatTime time
@@ -12,6 +13,9 @@ namespace OriNoco.Timing
             {
                 _realtime = Metronome.GetSecondsFromBeatTime(value);
                 _time = value;
+                
+                Instance?.UpdateViewOnly();
+                onTimeChanged?.Invoke(value);
             }
         }
 
@@ -23,7 +27,23 @@ namespace OriNoco.Timing
             {
                 _time = Metronome.GetBeatTimeFromSeconds(value);
                 _realtime = value;
+                
+                Instance?.UpdateViewOnly();
+                onRealtimeChanged?.Invoke(value);
             }
+        }
+
+        public static event Action<BeatTime> onTimeChanged;
+        public static event Action<float> onRealtimeChanged;
+
+        [Header("View Only")] 
+        public BeatTime viewTime;
+        public float viewRealtime;
+
+        public void UpdateViewOnly()
+        {
+            viewTime = _time;
+            viewRealtime = _realtime;
         }
     }
 }

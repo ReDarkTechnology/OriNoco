@@ -3,6 +3,14 @@ using UnityEngine;
 
 namespace OriNoco.Timing
 {
+    /// <summary>
+    /// Represents a point in time within a musical composition, defined by a beat value and a fractional component.
+    /// </summary>
+    /// <remarks>
+    /// This struct provides methods for manipulating and converting beat times, including adjusting the beat and fraction,
+    /// getting the whole value, signature, and more.
+    /// </remarks>
+    // ReSharper disable CompareOfFloatsByEqualityOperator
     [Serializable]
     public struct BeatTime
     {
@@ -27,42 +35,58 @@ namespace OriNoco.Timing
         public BeatTime(float whole)
         {
             beat = (int)whole;
-            float fractionalPart = whole - beat;
+            var fractionalPart = whole - beat;
             fraction = new Fraction(fractionalPart, 1);
         }
 
-        public BeatTime(float beat = 0, int numerator = 0, int denominator = 1)
+        public BeatTime(float beat = 0, float numerator = 0, float denominator = 1)
         {
-            float whole = beat + Divide(numerator, denominator);
-
-            this.beat = (int)whole;
-            float fractionalPart = whole - beat;
-            fraction = new Fraction(fractionalPart, 1);
+            this.beat = beat;
+            fraction = new Fraction(numerator, denominator, false);
         }
 
         public BeatTime(float beat, float fraction)
         {
-            float whole = (float)beat + fraction;
+            var f = (float)beat + fraction;
 
-            this.beat = (int)whole;
-            float fractionalPart = whole - beat;
+            this.beat = (int)f;
+            var fractionalPart = f - beat;
             this.fraction = new Fraction(fractionalPart, 1);
         }
 
         public BeatTime(string str)
         {
-            string[] split = str.Split(':');
-            string[] split2 = split[1].Split('/');
+            var split = str.Split(':');
+            var split2 = split[1].Split('/');
 
             float.TryParse(split[0], out beat);
-            if (float.TryParse(split2[0], out float numerator))
-            {
-                if (float.TryParse(split2[1], out float denominator))
-                    fraction = new Fraction(numerator, denominator);
-                else
-                    fraction = new Fraction(numerator, 1);
-            }
+            if (float.TryParse(split2[0], out var num))
+                fraction = float.TryParse(split2[1], out var den) ? 
+                    new Fraction(num, den) : 
+                    new Fraction(num, 1);
+            
             fraction = new Fraction(0, 1);
+        }
+
+        /// <summary>
+        /// Adjust the beat and fraction to ensure that the numerator is within [0, denominator).
+        /// </summary>
+        /// <remarks>
+        /// This is done by subtracting whole beats from the numerator and adding or subtracting that many beats from the whole beat value.
+        /// </remarks>
+        public void AdjustBeatAndFraction()
+        {
+            if (numerator != 0)
+            {
+                beat += (int)(numerator / denominator);
+                fraction.SetNumerator(numerator % denominator);
+        
+                if (numerator < 0)
+                {
+                    beat -= 1;
+                    fraction.SetNumerator(numerator + denominator);
+                }
+            }
         }
 
         public readonly float GetSignature() => fraction.Value;
@@ -76,33 +100,32 @@ namespace OriNoco.Timing
         public static void GetFraction(float value, ref BeatTime time)
         {
             time.beat = (int)value;
-            float fractionalPart = value - time.beat;
+            var fractionalPart = value - time.beat;
             time.fraction = new Fraction(fractionalPart);
         }
 
         public override string ToString() => $"{beat}:{fraction.Numerator}/{fraction.Denominator}";
         public static BeatTime Parse(string str)
         {
-            string[] split = str.Split(':');
-            string[] split2 = split[1].Split('/');
+            var split = str.Split(':');
+            var split2 = split[1].Split('/');
 
             var bt = new BeatTime();
             float.TryParse(split[0], out bt.beat);
-            float.TryParse(split2[0], out float n);
-            float.TryParse(split2[1], out float d);
+            float.TryParse(split2[0], out var n);
+            float.TryParse(split2[1], out var d);
             bt.fraction = new Fraction(n, d);
             return bt;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj == null) return false;
-            if (obj is BeatTime)
+            return obj switch
             {
-                var y = (BeatTime)obj;
-                return y.GetWholeValue() == GetWholeValue();
-            }
-            return false;
+                null => false,
+                BeatTime time => time.GetWholeValue() == GetWholeValue(),
+                _ => false
+            };
         }
 
         public static BeatTime operator -(BeatTime lhs, BeatTime rhs) =>

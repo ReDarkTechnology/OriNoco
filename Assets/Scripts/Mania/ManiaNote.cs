@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using OriNoco.Timing;
+using UnityEngine.UI;
 
 namespace OriNoco.Mania
 {
@@ -11,14 +12,22 @@ namespace OriNoco.Mania
         public Direction direction = Direction.Up;
 
         [Header("Graphics")]
-        public RectTransform startNote;
-        public RectTransform endNote;
+        public Image noteImage;
 
-        private float cachedSeconds;
-
-        public void UpdateTimeCache()
+        /// <summary>
+        /// Updates the graphics of the note, including its position and sprite.
+        /// </summary>
+        /// <remarks>
+        /// This should be called whenever the note's time, direction, or type changes.
+        /// </remarks>
+        public void UpdateGraphics()
         {
-            cachedSeconds = Metronome.GetSecondsFromBeatTime(time);
+            var rectTransform = (RectTransform)transform;
+            var pos = rectTransform.anchoredPosition;
+            pos.y = Metronome.GetSecondsFromBeatTime(time) * ManiaManager.Instance.scale;
+            rectTransform.anchoredPosition = pos;
+            noteImage.sprite = ManiaManager.Instance.noteSprites[(int)direction];
+            noteImage.color = ManiaManager.Instance.noteColors[(int)direction] * ManiaManager.Instance.noteTypeColors[(int)type]; 
         }
     }
 }

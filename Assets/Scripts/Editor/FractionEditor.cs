@@ -18,25 +18,28 @@ namespace OriNoco.Timing
             // Draw label
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
-            // Calculate rects for fields
-            var numeratorRect = new Rect(position.x, position.y, position.width / 2 - 2, position.height);
-            var denominatorRect = new Rect(position.x + position.width / 2 + 2, position.y, position.width / 2 - 2, position.height);
+            // Calculate rects for fields and button
+            var fieldWidth = position.width / 2 - 4;
+            var buttonWidth = 60; // Width for the "Simplify" button
+
+            var numeratorRect = new Rect(position.x, position.y, fieldWidth, position.height);
+            var denominatorRect = new Rect(position.x + fieldWidth + 4, position.y, fieldWidth, position.height);
+            var buttonRect = new Rect(position.x + 2 * fieldWidth + 8, position.y, buttonWidth, position.height);
 
             // Draw numerator and denominator fields
             EditorGUI.PropertyField(numeratorRect, numeratorProp, GUIContent.none);
             EditorGUI.PropertyField(denominatorRect, denominatorProp, GUIContent.none);
 
-            // Apply changes and call Simplify if either field changes
-            if (numeratorProp.floatValue != 0 || denominatorProp.floatValue != 0)
+            // Draw the "Simplify" button
+            if (GUI.Button(buttonRect, "Simplify"))
             {
-                // Ensure the denominator isn't zero
-                if (denominatorProp.floatValue == 0)
-                {
-                    denominatorProp.floatValue = 1;
-                }
+                Simplify(property); // Call the Simplify method when clicked
+            }
 
-                // Call Simplify when either value is changed
-                Simplify(property);
+            // Ensure the denominator isn't zero
+            if (denominatorProp.floatValue == 0)
+            {
+                denominatorProp.floatValue = 1;
             }
 
             EditorGUI.EndProperty();
@@ -48,28 +51,25 @@ namespace OriNoco.Timing
             var numeratorProp = property.FindPropertyRelative("numerator");
             var denominatorProp = property.FindPropertyRelative("denominator");
 
-            // Simplification logic (example: find GCD and divide)
-            Vector2 frac = GCD(numeratorProp.floatValue / denominatorProp.floatValue, 0.000001f);
-            numeratorProp.floatValue = frac.x;
-            denominatorProp.floatValue = frac.y;
+            // Simplification logic (find GCD and divide)
+            var fraction = FractionSimplify(numeratorProp.floatValue / denominatorProp.floatValue, 0.000001f);
+            numeratorProp.floatValue = fraction.x;
+            denominatorProp.floatValue = fraction.y;
         }
 
-        // Example GCD function
-        private Vector2 GCD(float value, double accuracy)
+        private static Vector2 FractionSimplify(float value, double accuracy)
         {
-            if (accuracy <= 0.0 || accuracy >= 1.0)
+            if (accuracy is <= 0.0 or >= 1.0)
             {
-                throw new ArgumentOutOfRangeException("accuracy", "Must be > 0 and < 1.");
+                throw new ArgumentOutOfRangeException(nameof(accuracy), "Must be > 0 and < 1.");
             }
 
-            int sign = Math.Sign(value);
+            var sign = Math.Sign(value);
             if (sign == -1)
                 value = Math.Abs(value);
 
-            // Accuracy is the maximum relative error; convert to absolute maxError
-            double maxError = sign == 0 ? accuracy : value * accuracy;
-
-            int n = (int)Math.Floor(value);
+            var maxError = sign == 0 ? accuracy : value * accuracy;
+            var n = (int)Math.Floor(value);
             value -= n;
 
             if (value < maxError)
@@ -82,35 +82,29 @@ namespace OriNoco.Timing
                 return new Vector2(sign * (n + 1), 1);
             }
 
-            // The lower fraction is 0/1
-            int lower_n = 0;
-            int lower_d = 1;
-
-            // The upper fraction is 1/1
-            int upper_n = 1;
-            int upper_d = 1;
+            var lowerN = 0;
+            var lowerD = 1;
+            var upperN = 1;
+            var upperD = 1;
 
             while (true)
             {
-                // The middle fraction is (lower_n + upper_n) / (lower_d + upper_d)
-                int middle_n = lower_n + upper_n;
-                int middle_d = lower_d + upper_d;
+                var middleN = lowerN + upperN;
+                var middleD = lowerD + upperD;
 
-                if (middle_d * (value + maxError) < middle_n)
+                if (middleD * (value + maxError) < middleN)
                 {
-                    // real + error < middle : middle is our new upper
-                    upper_n = middle_n;
-                    upper_d = middle_d;
+                    upperN = middleN;
+                    upperD = middleD;
                 }
-                else if (middle_n < (value - maxError) * middle_d)
+                else if (middleN < (value - maxError) * middleD)
                 {
-                    // middle < real - error : middle is our new lower
-                    lower_n = middle_n;
-                    lower_d = middle_d;
+                    lowerN = middleN;
+                    lowerD = middleD;
                 }
                 else
                 {
-                    return new Vector2((n * middle_d + middle_n) * sign, middle_d);
+                    return new Vector2((n * middleD + middleN) * sign, middleD);
                 }
             }
         }
