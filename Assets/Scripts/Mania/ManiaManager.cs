@@ -26,6 +26,14 @@ namespace OriNoco.Mania
         
         public List<ManiaLane> lanes = new();
         public RectTransform containerRect;
+        public RectTransform fullRect;
+
+        public int yOffset;
+
+        public float GetSecondsFromScreenPoint(float y)
+        {
+            return (y - yOffset - containerRect.anchoredPosition.y) / scale;
+        }
 
         private void Awake()
         {

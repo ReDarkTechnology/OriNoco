@@ -93,6 +93,7 @@ namespace OriNoco.Timing
         private static float GetBeatFromSeconds(float seconds, float bpm) => seconds * bpm / 60f;
         private static float GetSecondsFromBeat(float beat, float bpm) => beat * 60f / bpm;
 
+        public static BeatTime SnapBeatTimeToDivision(BeatTime time) => SnapBeatTimeToDivision(time, GetRegionAtTime(time).defaultSignature);
         /// <summary>
         /// Snaps a given <see cref="BeatTime"/> to a particular division.
         /// </summary>
@@ -136,7 +137,7 @@ namespace OriNoco.Timing
         
         public static BeatRegion GetRegionAtTime(BeatTime time)
         {
-            if (time.whole < 0) return null;
+            if (time.whole < 0) return regions[0];
 
             for (var i = 0; i < regions.Count; i++)
             {
