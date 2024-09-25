@@ -6,9 +6,8 @@ namespace OriNoco
     {
         Tap = 0,
         Drag = 1,
-        HoldStart = 2,
-        HoldEnd = 3,
-        Inverse = 4
+        Hold = 2,
+        Inverse = 3
     }
 
     public enum Direction
@@ -22,6 +21,15 @@ namespace OriNoco
         RightDown = 6,
         LeftDown = 7,
         None = 8
+    }
+
+    public enum NoteCreateState
+    {
+        None,
+        StartCreating,
+        Creating,
+        EndCreating,
+        Cancelled
     }
 
     /// <summary>

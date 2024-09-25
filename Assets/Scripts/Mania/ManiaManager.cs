@@ -29,6 +29,7 @@ namespace OriNoco.Mania
         public RectTransform fullRect;
 
         public int yOffset;
+        public static ManiaLane creatingLane;
 
         public float GetSecondsFromScreenPoint(float y)
         {
